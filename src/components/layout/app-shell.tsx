@@ -107,7 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src="/avatars/01.png" alt="Admin" />
+                  <AvatarImage src="https://picsum.photos/seed/1/36/36" alt="Admin" data-ai-hint="person avatar" />
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
               </Button>
