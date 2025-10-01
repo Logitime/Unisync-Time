@@ -32,16 +32,105 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+
+
+function EmployeeForm({
+  employee,
+  onSave,
+  onCancel,
+}: {
+  employee?: Partial<Employee> | null;
+  onSave: (employee: Omit<Employee, 'id'> & { id?: string }) => void;
+  onCancel: () => void;
+}) {
+  const [formData, setFormData] = React.useState({
+    id: employee?.id || `E${Math.floor(1000 + Math.random() * 9000)}`,
+    name: employee?.name || '',
+    department: employee?.department || 'Engineering',
+    enrollmentDate: employee?.enrollmentDate || new Date().toISOString().split('T')[0],
+    imageUrl: employee?.imageUrl || `https://picsum.photos/seed/${Math.random()}/32/32`,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({ ...employee, ...formData });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="employee-name">Full Name</Label>
+        <Input
+          id="employee-name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          placeholder="e.g., John Doe"
+          required
+        />
+      </div>
+       <div className="space-y-2">
+        <Label htmlFor="employee-id-form">Employee ID</Label>
+        <Input
+          id="employee-id-form"
+          value={formData.id}
+          onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+          readOnly={!!employee?.id}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="employee-department">Department</Label>
+         <Select 
+            value={formData.department} 
+            onValueChange={(value) => setFormData({ ...formData, department: value })}
+        >
+            <SelectTrigger id="employee-department">
+                <SelectValue placeholder="Select department" />
+            </SelectTrigger>
+            <SelectContent>
+                {['Engineering', 'Marketing', 'Human Resources', 'Sales', 'Support'].map(dept => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+      </div>
+       <div className="space-y-2">
+        <Label htmlFor="employee-enrollment-date">Enrollment Date</Label>
+        <Input
+            id="employee-enrollment-date"
+            type="date"
+            value={formData.enrollmentDate}
+            onChange={(e) => setFormData({ ...formData, enrollmentDate: e.target.value })}
+            required
+        />
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit">Save</Button>
+      </DialogFooter>
+    </form>
+  );
+}
+
 
 export default function EnrollmentPage() {
+  const { toast } = useToast();
   const [selectedEmployeeId, setSelectedEmployeeId] = React.useState(
     employees[0].id
   );
   const [employeeData, setEmployeeData] = React.useState<Employee[]>(employees);
+  const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
   const selectedEmployee = employeeData.find(
     (emp) => emp.id === selectedEmployeeId
-  )!;
+  );
 
   const handleAccessRightChange = (
     areaId: string,
@@ -78,6 +167,50 @@ export default function EnrollmentPage() {
       })
     );
   };
+  
+  const handleSaveChanges = () => {
+    // In a real app, this would send the updated employeeData to the server.
+    toast({
+        title: "Changes Saved",
+        description: "Employee data has been updated locally."
+    })
+  }
+  
+  const handleSaveEmployee = (employee: Omit<Employee, 'id'> & { id?: string }) => {
+    if (employee.id && employeeData.some(e => e.id === employee.id)) { // Update
+        setEmployeeData(prev => prev.map(e => e.id === employee.id ? { ...e, ...employee } as Employee : e));
+        toast({ title: 'Employee Updated', description: `${employee.name} has been updated.` });
+    } else { // Add
+        const newEmployee = { ...employee, accessRights: [], shiftAssignments: [] } as Employee;
+        setEmployeeData(prev => [...prev, newEmployee]);
+        setSelectedEmployeeId(newEmployee.id);
+        toast({ title: 'Employee Added', description: `${employee.name} has been added.` });
+    }
+    setIsAddDialogOpen(false);
+    setIsEditDialogOpen(false);
+  }
+
+  const handleDeleteEmployee = () => {
+    const employeeToDelete = selectedEmployee;
+    if (!employeeToDelete) return;
+
+    // Prevent deleting the last employee
+    if (employeeData.length <= 1) {
+        toast({ variant: 'destructive', title: 'Cannot Delete', description: 'Cannot delete the last remaining employee.' });
+        return;
+    }
+
+    setEmployeeData(prev => prev.filter(e => e.id !== employeeToDelete.id));
+    
+    // Select the first employee in the list after deletion
+    setSelectedEmployeeId(employeeData.filter(e => e.id !== employeeToDelete.id)[0].id);
+
+    toast({ title: 'Employee Deleted', description: `${employeeToDelete.name} has been deleted.` });
+  }
+
+  if (!selectedEmployee) {
+    return <div>Loading...</div>; // Or some other placeholder
+  }
 
   return (
     <TooltipProvider>
@@ -95,7 +228,7 @@ export default function EnrollmentPage() {
               <SelectValue placeholder="Select an employee" />
             </SelectTrigger>
             <SelectContent>
-              {employees.map((emp) => (
+              {employeeData.map((emp) => (
                 <SelectItem key={emp.id} value={emp.id}>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
@@ -108,26 +241,68 @@ export default function EnrollmentPage() {
               ))}
             </SelectContent>
           </Select>
-          <Tooltip>
-            <TooltipTrigger asChild>
-                <Button variant="outline" size="icon"><PlusCircle /></Button>
-            </TooltipTrigger>
-            <TooltipContent>Add New Employee</TooltipContent>
-          </Tooltip>
-           <Tooltip>
-            <TooltipTrigger asChild>
-                <Button variant="outline" size="icon"><Pencil /></Button>
-            </TooltipTrigger>
-            <TooltipContent>Edit Employee</TooltipContent>
-          </Tooltip>
-           <Tooltip>
-            <TooltipTrigger asChild>
-                <Button variant="destructive" size="icon"><Trash2 /></Button>
-            </TooltipTrigger>
-            <TooltipContent>Delete Employee</TooltipContent>
-          </Tooltip>
+          
+           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="icon"><PlusCircle /></Button>
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Add New Employee</TooltipContent>
+            </Tooltip>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add New Employee</DialogTitle>
+                    <DialogDescription>Fill in the details to enroll a new employee.</DialogDescription>
+                </DialogHeader>
+                <EmployeeForm onSave={handleSaveEmployee} onCancel={() => setIsAddDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
 
-          <Button>Save Changes</Button>
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" size="icon"><Pencil /></Button>
+                    </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Edit Employee</TooltipContent>
+            </Tooltip>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Edit Employee</DialogTitle>
+                    <DialogDescription>Update the details for {selectedEmployee.name}.</DialogDescription>
+                </DialogHeader>
+                <EmployeeForm employee={selectedEmployee} onSave={handleSaveEmployee} onCancel={() => setIsEditDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+
+           <AlertDialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="icon"><Trash2 /></Button>
+                    </AlertDialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Delete Employee</TooltipContent>
+              </Tooltip>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete {selectedEmployee.name}. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteEmployee}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+
+          <Button onClick={handleSaveChanges}>Save Changes</Button>
         </div>
       </div>
 
@@ -149,13 +324,13 @@ export default function EnrollmentPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" defaultValue={selectedEmployee.name} />
+              <Input id="name" value={selectedEmployee.name} readOnly />
             </div>
             <div className="space-y-2">
               <Label htmlFor="employeeId">Employee ID</Label>
               <Input
                 id="employeeId"
-                defaultValue={selectedEmployee.id}
+                value={selectedEmployee.id}
                 readOnly
               />
             </div>
@@ -163,15 +338,17 @@ export default function EnrollmentPage() {
               <Label htmlFor="department">Department</Label>
               <Input
                 id="department"
-                defaultValue={selectedEmployee.department}
+                value={selectedEmployee.department}
+                readOnly
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="enrollmentDate">Enrollment Date</Label>
               <Input
                 id="enrollmentDate"
-                defaultValue={selectedEmployee.enrollmentDate}
+                value={selectedEmployee.enrollmentDate}
                 type="date"
+                readOnly
               />
             </div>
           </CardContent>
@@ -263,3 +440,5 @@ export default function EnrollmentPage() {
     </TooltipProvider>
   );
 }
+
+    
