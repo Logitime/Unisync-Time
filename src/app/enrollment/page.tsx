@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { Fingerprint, User, CheckCircle2, AlertCircle, Hourglass, Database } from 'lucide-react';
+import { Fingerprint, User, CheckCircle2, AlertCircle, Hourglass, Database, PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -31,6 +31,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function EnrollmentPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = React.useState(
@@ -79,12 +80,13 @@ export default function EnrollmentPage() {
   };
 
   return (
+    <TooltipProvider>
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">
           Employee Enrollment
         </h1>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Select
             value={selectedEmployeeId}
             onValueChange={setSelectedEmployeeId}
@@ -106,6 +108,25 @@ export default function EnrollmentPage() {
               ))}
             </SelectContent>
           </Select>
+          <Tooltip>
+            <TooltipTrigger asChild>
+                <Button variant="outline" size="icon"><PlusCircle /></Button>
+            </TooltipTrigger>
+            <TooltipContent>Add New Employee</TooltipContent>
+          </Tooltip>
+           <Tooltip>
+            <TooltipTrigger asChild>
+                <Button variant="outline" size="icon"><Pencil /></Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit Employee</TooltipContent>
+          </Tooltip>
+           <Tooltip>
+            <TooltipTrigger asChild>
+                <Button variant="destructive" size="icon"><Trash2 /></Button>
+            </TooltipTrigger>
+            <TooltipContent>Delete Employee</TooltipContent>
+          </Tooltip>
+
           <Button>Save Changes</Button>
         </div>
       </div>
@@ -239,5 +260,6 @@ export default function EnrollmentPage() {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
