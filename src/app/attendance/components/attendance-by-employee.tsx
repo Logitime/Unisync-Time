@@ -9,6 +9,7 @@ import {
   getPaginationRowModel,
   useReactTable,
   type ColumnDef,
+  type Row,
 } from '@tanstack/react-table';
 import { format, subMonths, addMonths, differenceInMinutes, parse } from 'date-fns';
 
@@ -75,6 +76,16 @@ const calculateAttendancePercentage = (records: AttendanceRecord[], month: Date)
 
 export function AttendanceByEmployee() {
   const [currentMonth, setCurrentMonth] = React.useState(new Date());
+  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [departmentFilter, setDepartmentFilter] = React.useState('all');
+
+  const data = React.useMemo(() => {
+    return employees.filter(employee => {
+        const departmentMatch = departmentFilter === 'all' || employee.department === departmentFilter;
+        return departmentMatch;
+    })
+  }, [departmentFilter]);
+
 
   const columns: ColumnDef<Employee>[] = [
     {
@@ -130,20 +141,13 @@ export function AttendanceByEmployee() {
     }
   ];
 
-  const [globalFilter, setGlobalFilter] = React.useState('');
-  const [departmentFilter, setDepartmentFilter] = React.useState('all');
-
-  const filteredEmployees = React.useMemo(() => {
-    return employees.filter(employee => {
-        const nameMatch = employee.name.toLowerCase().includes(globalFilter.toLowerCase());
-        const departmentMatch = departmentFilter === 'all' || employee.department === departmentFilter;
-        return nameMatch && departmentMatch;
-    })
-  }, [employees, globalFilter, departmentFilter]);
-
   const table = useReactTable({
-    data: filteredEmployees,
+    data,
     columns,
+    state: {
+        globalFilter,
+    },
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -156,6 +160,9 @@ export function AttendanceByEmployee() {
   const goToNextMonth = () => {
     setCurrentMonth(prev => addMonths(prev, 1));
   }
+  
+  const rows = table.getRowModel().rows;
+
 
   return (
     <Card>
@@ -239,8 +246,8 @@ export function AttendanceByEmployee() {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
+              {rows?.length ? (
+                rows.map((row) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
