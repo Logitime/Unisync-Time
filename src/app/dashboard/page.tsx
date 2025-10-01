@@ -27,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { rawAttendanceRecords, employees, departments } from '@/lib/data';
 
 export default function DashboardPage() {
-  const recentAttendance = rawAttendanceRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
+  const recentAttendance = rawAttendanceRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const issuesCount = rawAttendanceRecords.filter(
     (r) => r.status === 'Late' || r.status === 'Absent'
   ).length;

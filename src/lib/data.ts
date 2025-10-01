@@ -206,10 +206,14 @@ const groupedRecords = rawAttendanceRecords.reduce((acc, record) => {
       entries: [],
       exits: [],
       isAbsent: false,
+      isLate: false,
     };
   }
   if (record.eventType === 'Entry') {
     acc[key].entries.push(record.time);
+    if (record.status === 'Late') {
+      acc[key].isLate = true;
+    }
   } else if (record.eventType === 'Exit') {
     acc[key].exits.push(record.time);
   }
@@ -222,7 +226,8 @@ const groupedRecords = rawAttendanceRecords.reduce((acc, record) => {
   }
   
   return acc;
-}, {} as Record<string, { id: number, employeeId: string, date: string, entries: string[], exits: string[], isAbsent: boolean }>);
+}, {} as Record<string, { id: number, employeeId: string, date: string, entries: string[], exits: string[], isAbsent: boolean, isLate: boolean }>);
+
 
 // Process grouped records into a clean attendance list
 export const attendanceRecords: AttendanceRecord[] = Object.values(groupedRecords).map(group => {
@@ -240,20 +245,13 @@ export const attendanceRecords: AttendanceRecord[] = Object.values(groupedRecord
   const earliestEntry = group.entries.sort((a, b) => a.localeCompare(b))[0] || null;
   const latestExit = group.exits.sort((a, b) => b.localeCompare(a))[0] || null;
   
-  const rawEntry = rawAttendanceRecords.find(r => r.employeeId === group.employeeId && r.date === group.date && r.time === earliestEntry && r.eventType === 'Entry');
-  
-  let status: 'Present' | 'Late' | 'Absent' = 'Present';
-  if(rawEntry?.status === 'Late') {
-      status = 'Late';
-  }
-
   return {
     id: group.id,
     employeeId: group.employeeId,
     date: group.date,
     entryTime: earliestEntry,
     exitTime: latestExit,
-    status: status,
+    status: group.isLate ? 'Late' : 'Present',
   };
 });
 
