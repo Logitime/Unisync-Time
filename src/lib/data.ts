@@ -28,6 +28,12 @@ export type Door = {
   id: string;
   name: string;
   status: 'Locked' | 'Unlocked' | 'Jammed';
+  ip?: string;
+  port?: number;
+  ioPorts?: {
+    input: number;
+    output: number;
+  };
 };
 
 export type AccessArea = {
@@ -237,9 +243,9 @@ export const accessAreas: AccessArea[] = [
     name: 'Main Office',
     description: 'General access area for all employees.',
     doors: [
-      { id: 'D001', name: 'Main Entrance', status: 'Unlocked' },
-      { id: 'D002', name: 'Lobby', status: 'Unlocked' },
-      { id: 'D003', name: 'East Wing Hallway', status: 'Locked' },
+      { id: 'D001', name: 'Main Entrance', status: 'Unlocked', ip: '192.168.1.10', port: 8080, ioPorts: { input: 1, output: 2 } },
+      { id: 'D002', name: 'Lobby', status: 'Unlocked', ip: '192.168.1.11', port: 8080, ioPorts: { input: 1, output: 2 } },
+      { id: 'D003', name: 'East Wing Hallway', status: 'Locked', ip: '192.168.1.12', port: 8080, ioPorts: { input: 1, output: 2 } },
     ],
   },
   {
@@ -247,7 +253,7 @@ export const accessAreas: AccessArea[] = [
     name: 'Server Room',
     description: 'Restricted access for IT personnel only.',
     doors: [
-      { id: 'D101', name: 'Server Room Door', status: 'Locked' },
+      { id: 'D101', name: 'Server Room Door', status: 'Locked', ip: '192.168.2.10', port: 9000, ioPorts: { input: 3, output: 4 } },
       { id: 'D102', name: 'Maintenance Hatch', status: 'Locked' },
     ],
   },

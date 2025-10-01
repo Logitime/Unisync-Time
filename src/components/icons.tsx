@@ -1,4 +1,5 @@
 import type { SVGProps } from 'react';
+import { HardDrive } from 'lucide-react';
 
 export function Logo(props: SVGProps<SVGSVGElement>) {
   return (
@@ -23,3 +24,5 @@ export function Logo(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export { HardDrive };

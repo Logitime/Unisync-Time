@@ -3,6 +3,7 @@
 import {
   AlertCircle,
   CheckCircle2,
+  HardDrive,
   Pencil,
   PlusCircle,
   Timer,
@@ -10,6 +11,12 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,7 +55,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { shifts as initialShifts, type Shift } from '@/lib/data';
+import {
+  accessAreas as initialAccessAreas,
+  shifts as initialShifts,
+  type AccessArea,
+  type Shift,
+} from '@/lib/data';
 
 function ShiftForm({
   shift,
@@ -133,6 +145,7 @@ function ShiftForm({
 
 export default function SettingsPage() {
   const [shifts, setShifts] = React.useState<Shift[]>(initialShifts);
+  const [accessAreas, setAccessAreas] = React.useState<AccessArea[]>(initialAccessAreas);
   const [isAddFormOpen, setIsAddFormOpen] = React.useState(false);
   const [editingShift, setEditingShift] = React.useState<Shift | null>(null);
 
@@ -165,6 +178,49 @@ export default function SettingsPage() {
   const handleDelete = (shiftId: string) => {
     setShifts(shifts.filter((s) => s.id !== shiftId));
   };
+  
+  const handleHardwareChange = (areaId: string, doorId: string, field: string, value: string | number) => {
+    setAccessAreas(prevAreas => 
+      prevAreas.map(area => 
+        area.id === areaId 
+        ? {
+            ...area,
+            doors: area.doors.map(door => 
+              door.id === doorId 
+              ? {
+                  ...door,
+                  [field]: value
+                }
+              : door
+            )
+          }
+        : area
+      )
+    )
+  }
+
+  const handleIoPortChange = (areaId: string, doorId: string, portType: 'input' | 'output', value: number) => {
+     setAccessAreas(prevAreas => 
+      prevAreas.map(area => 
+        area.id === areaId 
+        ? {
+            ...area,
+            doors: area.doors.map(door => 
+              door.id === doorId 
+              ? {
+                  ...door,
+                  ioPorts: {
+                    ...door.ioPorts,
+                    [portType]: value
+                  }
+                }
+              : door
+            )
+          }
+        : area
+      )
+    )
+  }
 
   return (
     <TooltipProvider>
@@ -286,7 +342,7 @@ export default function SettingsPage() {
 
         <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           <Card className="flex flex-col">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -416,6 +472,58 @@ export default function SettingsPage() {
                   No shifts defined.
                 </div>
               )}
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+               <div className="flex items-center gap-4">
+                  <HardDrive className="h-8 w-8 text-primary" />
+                  <div>
+                    <CardTitle>Access Control Hardware</CardTitle>
+                    <CardDescription>
+                      Configure door controller settings.
+                    </CardDescription>
+                  </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="multiple" className="w-full space-y-2">
+                {accessAreas.map(area => (
+                  <AccordionItem key={area.id} value={area.id} className="rounded-md border bg-card text-sm shadow-sm">
+                    <AccordionTrigger className="px-4 py-3 font-medium hover:no-underline">
+                      {area.name}
+                    </AccordionTrigger>
+                    <AccordionContent className="border-t p-4 space-y-4">
+                      {area.doors.map(door => (
+                        <div key={door.id} className="rounded-md border p-4 space-y-4">
+                          <h4 className="font-medium">{door.name}</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor={`ip-${door.id}`}>IP Address</Label>
+                              <Input id={`ip-${door.id}`} value={door.ip || ''} onChange={e => handleHardwareChange(area.id, door.id, 'ip', e.target.value)} placeholder="e.g., 192.168.1.10" />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor={`port-${door.id}`}>Port</Label>
+                              <Input id={`port-${door.id}`} type="number" value={door.port || ''} onChange={e => handleHardwareChange(area.id, door.id, 'port', parseInt(e.target.value))} placeholder="e.g., 8080" />
+                            </div>
+                          </div>
+                           <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor={`input-${door.id}`}>Input Port</Label>
+                              <Input id={`input-${door.id}`} type="number" value={door.ioPorts?.input || ''} onChange={e => handleIoPortChange(area.id, door.id, 'input', parseInt(e.target.value))} placeholder="e.g., 1" />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor={`output-${door.id}`}>Output Port</Label>
+                              <Input id={`output-${door.id}`} type="number" value={door.ioPorts?.output || ''} onChange={e => handleIoPortChange(area.id, door.id, 'output', parseInt(e.target.value))} placeholder="e.g., 2" />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </CardContent>
           </Card>
         </div>
