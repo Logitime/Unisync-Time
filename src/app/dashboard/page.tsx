@@ -27,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { rawAttendanceRecords, employees, departments, attendanceRecords } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AttendanceTrendsChart } from './components/attendance-trends-chart';
-import { DoorStatusChart } from './components/door-status-chart';
+import { DoorStatusList } from './components/door-status-chart';
 
 export default function DashboardPage() {
   const recentAttendance = rawAttendanceRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -103,7 +103,7 @@ export default function DashboardPage() {
         <Card className="col-span-1 lg:col-span-3">
           <CardHeader>
             <CardTitle>Attendance Trends</CardTitle>
-            <CardDescription>Last 7 days</CardDescription>
+            <CardDescription>Last 5 days</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             <AttendanceTrendsChart />
@@ -115,7 +115,7 @@ export default function DashboardPage() {
             <CardDescription>Live overview of all doors</CardDescription>
           </CardHeader>
           <CardContent>
-            <DoorStatusChart />
+            <DoorStatusList />
           </CardContent>
         </Card>
       </div>

@@ -228,59 +228,66 @@ export const rawAttendanceRecords: (Omit<AttendanceRecord, 'entryTime' | 'exitTi
   { id: 64, employeeId: 'F3109', employeeName: 'Fiona Garcia', department: 'Human Resources', date: '2024-07-10', time: '17:00', eventType: 'Exit', status: 'Present' }
 ];
 
-const processAttendanceData = (records: typeof rawAttendanceRecords): AttendanceRecord[] => {
-  const grouped = new Map<string, { id: number; employeeId: string; date: string; entries: string[]; exits: string[]; status: 'Present' | 'Late' | 'Absent' }>();
+const processAttendanceData = (
+  records: Array<Omit<AttendanceRecord, 'entryTime' | 'exitTime'> & {time: string, eventType: string, status: AttendanceRecord['status']}>
+): AttendanceRecord[] => {
+  const groupedByDay = new Map<string, {
+    id: number;
+    employeeId: string;
+    date: string;
+    entries: string[];
+    exits: string[];
+    statuses: Set<AttendanceRecord['status']>;
+  }>();
 
   for (const record of records) {
     const key = `${record.employeeId}|${record.date}`;
-    let dayData = grouped.get(key);
-
-    if (!dayData) {
-      dayData = {
+    if (!groupedByDay.has(key)) {
+      groupedByDay.set(key, {
         id: record.id,
         employeeId: record.employeeId,
         date: record.date,
         entries: [],
         exits: [],
-        status: 'Present', 
-      };
-      grouped.set(key, dayData);
+        statuses: new Set(),
+      });
     }
-    
-    if (record.status === 'Absent') {
-      dayData.status = 'Absent';
-      dayData.entries = [];
-      dayData.exits = [];
-    } else if (dayData.status !== 'Absent') {
-      if (record.eventType === 'Entry') {
-        dayData.entries.push(record.time);
-      } else if (record.eventType === 'Exit') {
-        dayData.exits.push(record.time);
-      }
-      
-      if (record.status === 'Late') {
-        dayData.status = 'Late';
-      }
-    }
-     if (record.id < dayData.id) {
+
+    const dayData = groupedByDay.get(key)!;
+    if (record.id < dayData.id) {
         dayData.id = record.id;
     }
+    
+    if (record.eventType === 'Entry') {
+      dayData.entries.push(record.time);
+    } else if (record.eventType === 'Exit') {
+      dayData.exits.push(record.time);
+    }
+    dayData.statuses.add(record.status);
   }
 
-  return Array.from(grouped.values()).map(dayData => {
-    const earliestEntry = dayData.entries.length > 0 ? dayData.entries.reduce((a, b) => (a < b ? a : b)) : null;
-    const latestExit = dayData.exits.length > 0 ? dayData.exits.reduce((a, b) => (a > b ? a : b)) : null;
-    
+  return Array.from(groupedByDay.values()).map(dayData => {
+    let finalStatus: AttendanceRecord['status'] = 'Present';
+    if (dayData.statuses.has('Absent')) {
+      finalStatus = 'Absent';
+    } else if (dayData.statuses.has('Late')) {
+      finalStatus = 'Late';
+    }
+
+    const earliestEntry = dayData.entries.length > 0 ? dayData.entries.sort()[0] : null;
+    const latestExit = dayData.exits.length > 0 ? dayData.exits.sort().reverse()[0] : null;
+
     return {
       id: dayData.id,
       employeeId: dayData.employeeId,
       date: dayData.date,
-      entryTime: earliestEntry,
-      exitTime: latestExit,
-      status: dayData.status,
+      entryTime: finalStatus === 'Absent' ? null : earliestEntry,
+      exitTime: finalStatus === 'Absent' ? null : latestExit,
+      status: finalStatus,
     };
-  });
+  }).sort((a,b) => a.id - b.id);
 };
+
 
 export const attendanceRecords: AttendanceRecord[] = processAttendanceData(rawAttendanceRecords);
 
@@ -334,9 +341,9 @@ export const eventTypes = ['Entry', 'Exit', 'Access Denied', 'System Login'];
 // Data for Charts
 
 // 1. Daily Attendance Trends
-const last7Days = Array.from({ length: 7 }, (_, i) => format(subDays(new Date(), i), 'yyyy-MM-dd')).reverse();
+const last5Days = Array.from({ length: 5 }, (_, i) => format(subDays(new Date(), i), 'yyyy-MM-dd')).reverse();
 
-export const dailyAttendanceData = last7Days.map(date => {
+export const dailyAttendanceData = last5Days.map(date => {
   const recordsForDay = attendanceRecords.filter(r => r.date === date);
   return {
     date,
