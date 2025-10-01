@@ -1,3 +1,4 @@
+
 export type Shift = {
   id: string;
   name: string;
@@ -194,7 +195,8 @@ export const rawAttendanceRecords: (Omit<AttendanceRecord, 'entryTime' | 'exitTi
   { id: 37, employeeId: 'F3109', employeeName: 'Fiona Garcia', department: 'Human Resources', date: '2024-07-06', time: '17:00', eventType: 'Exit', status: 'Present' },
 ];
 
-const groupedByDate = rawAttendanceRecords.reduce((acc, record) => {
+// Helper to group raw records by employee and date
+const groupedRecords = rawAttendanceRecords.reduce((acc, record) => {
   const key = `${record.employeeId}|${record.date}`;
   if (!acc[key]) {
     acc[key] = [];
@@ -203,35 +205,36 @@ const groupedByDate = rawAttendanceRecords.reduce((acc, record) => {
   return acc;
 }, {} as Record<string, typeof rawAttendanceRecords>);
 
-
-export const attendanceRecords: AttendanceRecord[] = Object.entries(groupedByDate).map(([key, records]) => {
-  const [employeeId, date] = key.split('|');
+// Process grouped records into a clean attendance list
+export const attendanceRecords: AttendanceRecord[] = Object.values(groupedRecords).map(records => {
+  const firstRecord = records[0];
+  const absentRecord = records.find(r => r.status === 'Absent');
+  
+  if (absentRecord) {
+    return {
+      id: absentRecord.id,
+      employeeId: absentRecord.employeeId,
+      date: absentRecord.date,
+      entryTime: null,
+      exitTime: null,
+      status: 'Absent',
+    };
+  }
   
   const entries = records.filter(r => r.eventType === 'Entry');
   const exits = records.filter(r => r.eventType === 'Exit');
-  const absentRecord = records.find(r => r.status === 'Absent');
   
-  let status: AttendanceRecord['status'] = 'Present';
-  if (absentRecord) {
-    status = 'Absent';
-  } else if (entries.some(e => e.status === 'Late')) {
-    status = 'Late';
-  }
-
-  const earliestEntry = entries.length > 0 
-    ? entries.reduce((earliest, current) => current.time < earliest.time ? current : earliest)
-    : null;
-    
-  const latestExit = exits.length > 0
-    ? exits.reduce((latest, current) => current.time > latest.time ? current : latest)
-    : null;
-
+  const earliestEntry = entries.sort((a, b) => a.time.localeCompare(b.time))[0];
+  const latestExit = exits.sort((a, b) => b.time.localeCompare(a.time))[0];
+  
+  const status = earliestEntry?.status === 'Late' ? 'Late' : 'Present';
+  
   return {
-    id: records[0].id,
-    employeeId,
-    date,
-    entryTime: status === 'Absent' ? null : earliestEntry?.time || null,
-    exitTime: status === 'Absent' ? null : latestExit?.time || null,
+    id: firstRecord.id,
+    employeeId: firstRecord.employeeId,
+    date: firstRecord.date,
+    entryTime: earliestEntry?.time || null,
+    exitTime: latestExit?.time || null,
     status: status,
   };
 });
@@ -281,3 +284,5 @@ export const accessAreas: AccessArea[] = [
 
 export const departments = [...new Set(employees.map((e) => e.department))];
 export const eventTypes = ['Entry', 'Exit', 'Access Denied', 'System Login'];
+
+    
