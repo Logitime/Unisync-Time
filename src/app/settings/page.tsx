@@ -1,3 +1,4 @@
+'use client';
 
 import { AlertCircle, CheckCircle2, Pencil, PlusCircle, Timer, Trash2 } from 'lucide-react';
 
