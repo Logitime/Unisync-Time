@@ -6,12 +6,18 @@ export type Shift = {
   gracePeriod: number; // in minutes
 };
 
+export type ShiftAssignment = {
+  shiftId: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+}
+
 export type Employee = {
   id: string;
   name: string;
   department: string;
   enrollmentDate: string;
-  shiftId?: string;
+  shiftAssignments?: ShiftAssignment[];
   accessRights?: { areaId: string; doorIds: string[] }[];
 };
 
@@ -73,7 +79,10 @@ export const employees: Employee[] = [
     name: 'Alice Johnson',
     department: 'Engineering',
     enrollmentDate: '2022-08-15',
-    shiftId: 'shift-1',
+    shiftAssignments: [
+        { shiftId: 'shift-1', startDate: '2024-07-01', endDate: '2024-07-15'},
+        { shiftId: 'shift-2', startDate: '2024-07-16', endDate: '2024-07-31'},
+    ],
     accessRights: [
       { areaId: 'area-01', doorIds: ['D001', 'D002'] },
       { areaId: 'area-02', doorIds: ['D101'] },
@@ -84,7 +93,9 @@ export const employees: Employee[] = [
     name: 'Bob Williams',
     department: 'Marketing',
     enrollmentDate: '2021-03-10',
-    shiftId: 'shift-1',
+    shiftAssignments: [
+        { shiftId: 'shift-1', startDate: '2024-07-01', endDate: '2024-07-31'},
+    ],
     accessRights: [
         { areaId: 'area-01', doorIds: ['D001'] }
     ],
@@ -94,7 +105,9 @@ export const employees: Employee[] = [
     name: 'Charlie Brown',
     department: 'Engineering',
     enrollmentDate: '2023-01-20',
-    shiftId: 'shift-1',
+     shiftAssignments: [
+        { shiftId: 'shift-3', startDate: '2024-07-01', endDate: '2024-07-31'},
+    ],
     accessRights: [
       { areaId: 'area-01', doorIds: ['D001', 'D002', 'D003'] },
       { areaId: 'area-02', doorIds: ['D101', 'D102'] },
@@ -105,7 +118,9 @@ export const employees: Employee[] = [
     name: 'Diana Miller',
     department: 'Human Resources',
     enrollmentDate: '2020-11-05',
-    shiftId: 'shift-1',
+     shiftAssignments: [
+        { shiftId: 'shift-1', startDate: '2024-07-01', endDate: '2024-07-31'},
+    ],
     accessRights: [
         { areaId: 'area-01', doorIds: ['D001', 'D002'] },
         { areaId: 'area-03', doorIds: ['D202'] },
@@ -116,7 +131,9 @@ export const employees: Employee[] = [
     name: 'Ethan Davis',
     department: 'Sales',
     enrollmentDate: '2022-09-01',
-    shiftId: 'shift-2',
+    shiftAssignments: [
+        { shiftId: 'shift-2', startDate: '2024-07-01', endDate: '2024-07-31'},
+    ],
      accessRights: [
         { areaId: 'area-01', doorIds: ['D001'] }
     ],
@@ -126,7 +143,7 @@ export const employees: Employee[] = [
     name: 'Fiona Garcia',
     department: 'Human Resources',
     enrollmentDate: '2023-07-12',
-    shiftId: 'shift-1',
+    shiftAssignments: [],
     accessRights: [
         { areaId: 'area-01', doorIds: ['D001', 'D002'] },
         { areaId: 'area-03', doorIds: ['D202'] },

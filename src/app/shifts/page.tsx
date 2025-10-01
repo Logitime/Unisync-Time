@@ -65,7 +65,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { ShiftCalendar } from './components/shift-calendar';
+import { ShiftCalendar, shiftColors } from './components/shift-calendar';
 
 export default function ShiftManagementPage() {
   const { toast } = useToast();
@@ -87,7 +87,19 @@ export default function ShiftManagementPage() {
 
   const getShiftName = (shiftId?: string) => {
     if (!shiftId) return 'Not Assigned';
-    return shifts.find((s) => s.id === shiftId)?.name || 'Unknown Shift';
+    const latestAssignment = employees
+      .flatMap(e => e.shiftAssignments || [])
+      .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())[0];
+    
+    if (shiftId) {
+      return shifts.find((s) => s.id === shiftId)?.name || 'Unknown Shift';
+    }
+    
+    if (latestAssignment) {
+      return shifts.find((s) => s.id === latestAssignment.shiftId)?.name || 'Not Assigned';
+    }
+    
+    return 'Not Assigned';
   };
 
   const columns: ColumnDef<Employee>[] = [
@@ -130,8 +142,11 @@ export default function ShiftManagementPage() {
     },
     {
       accessorKey: 'shiftId',
-      header: 'Assigned Shift',
-      cell: ({ row }) => <div className="w-28">{getShiftName(row.getValue('shiftId'))}</div>,
+      header: 'Current Shift',
+      cell: ({ row }) => {
+        const latestAssignment = [...(row.original.shiftAssignments || [])].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())[0];
+        return <div className="w-28">{getShiftName(latestAssignment?.shiftId)}</div>
+      },
     },
     {
         id: 'monthly-schedule',
@@ -139,7 +154,7 @@ export default function ShiftManagementPage() {
           <div className="text-center w-full">{format(currentMonth, 'MMMM yyyy')}</div>
         ),
         cell: ({ row }) => (
-          <ShiftCalendar shiftId={row.original.shiftId} month={currentMonth} />
+          <ShiftCalendar assignments={row.original.shiftAssignments || []} month={currentMonth} />
         ),
     },
     {
@@ -198,21 +213,41 @@ export default function ShiftManagementPage() {
         })
         return;
     }
-    
-    if (selectedShiftId !== 'rotational') {
-        setEmployees(prev => prev.map(emp => selectedEmployeeIds.includes(emp.id) ? {...emp, shiftId: selectedShiftId } : emp));
-        toast({
-            title: 'Shifts Assigned',
-            description: `Assigned shift to ${selectedEmployeeIds.length} employee(s).`
-        });
-    } else {
-        // Placeholder for rotational logic
-        toast({
-            title: 'Rotational Shift Set',
-            description: `Set rotational shift for ${selectedEmployeeIds.length} employee(s) from ${dateRange?.from ? format(dateRange.from, 'LLL dd, y') : ''} to ${dateRange?.to ? format(dateRange.to, 'LLL dd, y') : ''}.`
-        });
+     if (!dateRange?.from || !dateRange?.to) {
+      toast({
+        variant: 'destructive',
+        title: 'Assignment Failed',
+        description: 'Please select a valid date range.',
+      });
+      return;
     }
 
+    const newAssignment = {
+      shiftId: selectedShiftId,
+      startDate: format(dateRange.from, 'yyyy-MM-dd'),
+      endDate: format(dateRange.to, 'yyyy-MM-dd'),
+    };
+    
+    setEmployees(prev => prev.map(emp => {
+      if (selectedEmployeeIds.includes(emp.id)) {
+        const otherAssignments = emp.shiftAssignments?.filter(
+          // A simple filter to remove overlapping old assignments.
+          // A more robust solution would handle partial overlaps.
+          as => new Date(as.endDate) < dateRange.from! || new Date(as.startDate) > dateRange.to!
+        ) || [];
+
+        return {
+          ...emp,
+          shiftAssignments: [...otherAssignments, newAssignment]
+        };
+      }
+      return emp;
+    }));
+    
+    toast({
+        title: 'Shifts Assigned',
+        description: `Assigned shift to ${selectedEmployeeIds.length} employee(s) from ${format(dateRange.from, 'LLL dd, y')} to ${format(dateRange.to, 'LLL dd, y')}.`
+    });
 
     table.resetRowSelection();
   }
@@ -248,7 +283,7 @@ export default function ShiftManagementPage() {
                         {shift.name} ({shift.startTime} - {shift.endTime})
                     </SelectItem>
                     ))}
-                    <SelectItem value="rotational">Rotational Shift</SelectItem>
+                    <SelectItem value="unassigned">Unassign</SelectItem>
                 </SelectContent>
                 </Select>
                 
@@ -273,7 +308,7 @@ export default function ShiftManagementPage() {
                           format(dateRange.from, 'LLL dd, y')
                         )
                       ) : (
-                        <span>Pick a date</span>
+                        <span>Pick a date range</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -290,6 +325,19 @@ export default function ShiftManagementPage() {
                 </Popover>
 
                 <Button onClick={handleAssignShift} disabled={table.getSelectedRowModel().rows.length === 0 || !selectedShiftId}>Assign Shift</Button>
+            </div>
+             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-sm">
+              <span className="font-medium">Legend:</span>
+              {shifts.map(shift => (
+                <div key={shift.id} className="flex items-center gap-2">
+                  <div className={cn("h-3 w-3 rounded-sm", shiftColors[shift.id] || shiftColors.default)} />
+                  <span>{shift.name}</span>
+                </div>
+              ))}
+               <div className="flex items-center gap-2">
+                  <div className={cn("h-3 w-3 rounded-sm", shiftColors.default)} />
+                  <span>Not Assigned</span>
+                </div>
             </div>
         </CardHeader>
         <CardContent>
@@ -358,7 +406,7 @@ export default function ShiftManagementPage() {
                           column.toggleVisibility(!!value)
                         }
                       >
-                        {column.id}
+                        {column.id === 'shiftId' ? 'Current Shift' : column.id}
                       </DropdownMenuCheckboxItem>
                     );
                   })}
