@@ -185,36 +185,47 @@ export const rawAttendanceRecords: (Omit<AttendanceRecord, 'entryTime' | 'exitTi
   { id: 28, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-05', time: '17:00', eventType: 'Exit', status: 'Present' },
 ];
 
-export const attendanceRecords: AttendanceRecord[] = Object.values(rawAttendanceRecords.reduce((acc: Record<string, AttendanceRecord>, record) => {
-  const key = `${record.employeeId}-${record.date}`;
+const groupedByDate = rawAttendanceRecords.reduce((acc, record) => {
+  const key = `${record.employeeId}|${record.date}`;
   if (!acc[key]) {
-    acc[key] = {
-      id: record.id,
-      employeeId: record.employeeId,
-      date: record.date,
-      entryTime: null,
-      exitTime: null,
-      status: record.status,
-    };
+    acc[key] = [];
   }
-
-  const existing = acc[key];
-  if (record.eventType === 'Entry') {
-    existing.entryTime = record.time;
-    if (record.status === 'Late' || record.status === 'Absent') {
-      existing.status = record.status;
-    }
-  } else if (record.eventType === 'Exit') {
-    existing.exitTime = record.time;
-  }
-  
-  // If an entry exists, status should not be absent
-  if (existing.entryTime && existing.status === 'Absent') {
-      existing.status = 'Present'; // Or determine if it's late
-  }
-
+  acc[key].push(record);
   return acc;
-}, {}));
+}, {} as Record<string, typeof rawAttendanceRecords>);
+
+
+export const attendanceRecords: AttendanceRecord[] = Object.entries(groupedByDate).map(([key, records]) => {
+  const [employeeId, date] = key.split('|');
+  
+  const entries = records.filter(r => r.eventType === 'Entry' && r.status !== 'Absent');
+  const exits = records.filter(r => r.eventType === 'Exit');
+  const absentRecord = records.find(r => r.status === 'Absent');
+
+  let status: AttendanceRecord['status'] = 'Present';
+  if (absentRecord) {
+    status = 'Absent';
+  } else if (entries.some(e => e.status === 'Late')) {
+    status = 'Late';
+  }
+
+  const earliestEntry = entries.length > 0 
+    ? entries.reduce((earliest, current) => current.time < earliest.time ? current : earliest)
+    : null;
+    
+  const latestExit = exits.length > 0
+    ? exits.reduce((latest, current) => current.time > latest.time ? current : latest)
+    : null;
+
+  return {
+    id: records[0].id,
+    employeeId,
+    date,
+    entryTime: status === 'Absent' ? null : earliestEntry?.time || null,
+    exitTime: status === 'Absent' ? null : latestExit?.time || null,
+    status: status,
+  };
+});
 
 
 export const accessAreas: AccessArea[] = [
