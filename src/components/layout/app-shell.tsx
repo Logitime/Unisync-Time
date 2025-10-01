@@ -9,6 +9,7 @@ import {
   LogOut,
   Settings,
   User,
+  UserPlus,
 } from 'lucide-react';
 import { Logo } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -37,6 +38,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/reports', icon: FileText, label: 'Reports' },
+  { href: '/enrollment', icon: UserPlus, label: 'Enrollment' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
