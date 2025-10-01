@@ -183,6 +183,15 @@ export const rawAttendanceRecords: (Omit<AttendanceRecord, 'entryTime' | 'exitTi
 
   { id: 27, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-05', time: '09:12', eventType: 'Entry', status: 'Late' },
   { id: 28, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-05', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 29, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-06', time: '09:00', eventType: 'Entry', status: 'Present' },
+  { id: 30, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-06', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 31, employeeId: 'E1002', employeeName: 'Bob Williams', department: 'Marketing', date: '2024-07-05', time: '09:00', eventType: 'Entry', status: 'Present' },
+  { id: 32, employeeId: 'E1002', employeeName: 'Bob Williams', department: 'Marketing', date: '2024-07-05', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 33, employeeId: 'M2005', employeeName: 'Charlie Brown', department: 'Engineering', date: '2024-07-04', time: '00:00', eventType: 'Entry', status: 'Absent' },
+  { id: 34, employeeId: 'S4011', employeeName: 'Ethan Davis', department: 'Sales', date: '2024-07-04', time: '17:15', eventType: 'Entry', status: 'Late' },
+  { id: 35, employeeId: 'S4011', employeeName: 'Ethan Davis', department: 'Sales', date: '2024-07-04', time: '01:30', eventType: 'Exit', status: 'Present' },
+  { id: 36, employeeId: 'F3109', employeeName: 'Fiona Garcia', department: 'Human Resources', date: '2024-07-06', time: '09:00', eventType: 'Entry', status: 'Present' },
+  { id: 37, employeeId: 'F3109', employeeName: 'Fiona Garcia', department: 'Human Resources', date: '2024-07-06', time: '17:00', eventType: 'Exit', status: 'Present' },
 ];
 
 const groupedByDate = rawAttendanceRecords.reduce((acc, record) => {
@@ -198,10 +207,10 @@ const groupedByDate = rawAttendanceRecords.reduce((acc, record) => {
 export const attendanceRecords: AttendanceRecord[] = Object.entries(groupedByDate).map(([key, records]) => {
   const [employeeId, date] = key.split('|');
   
-  const entries = records.filter(r => r.eventType === 'Entry' && r.status !== 'Absent');
+  const entries = records.filter(r => r.eventType === 'Entry');
   const exits = records.filter(r => r.eventType === 'Exit');
   const absentRecord = records.find(r => r.status === 'Absent');
-
+  
   let status: AttendanceRecord['status'] = 'Present';
   if (absentRecord) {
     status = 'Absent';
