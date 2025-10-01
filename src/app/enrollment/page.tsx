@@ -105,12 +105,12 @@ export default function EnrollmentPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Biometric Status</Label>
-                <p className="text-sm text-muted-foreground flex items-center">
+                <div className="text-sm text-muted-foreground flex items-center">
                   <Badge variant="secondary" className="bg-green-100 text-green-800">Enrolled</Badge>
                   <Button variant="link" size="sm">
                     Re-enroll
                   </Button>
-                </p>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Access Groups</Label>
