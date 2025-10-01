@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
+  ShieldCheck,
   User,
   UserPlus,
 } from 'lucide-react';
@@ -41,6 +42,7 @@ const navItems = [
   { href: '/attendance', icon: History, label: 'Attendance' },
   { href: '/reports', icon: FileText, label: 'Reports' },
   { href: '/enrollment', icon: UserPlus, label: 'Enrollment' },
+  { href: '/access-control', icon: ShieldCheck, label: 'Access Control' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 

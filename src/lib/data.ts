@@ -14,6 +14,19 @@ export type AttendanceRecord = {
   status: 'Present' | 'Late' | 'Absent';
 };
 
+export type Door = {
+  id: string;
+  name: string;
+  status: 'Locked' | 'Unlocked' | 'Jammed';
+};
+
+export type AccessArea = {
+  id: string;
+  name: string;
+  description: string;
+  doors: Door[];
+};
+
 export const employees: Employee[] = [
   {
     id: 'E1001',
@@ -155,6 +168,48 @@ export const attendanceRecords: (AttendanceRecord & { employeeName: string, depa
     status: 'Present',
   },
 ];
+
+export const accessAreas: AccessArea[] = [
+  {
+    id: 'area-01',
+    name: 'Main Office',
+    description: 'General access area for all employees.',
+    doors: [
+      { id: 'D001', name: 'Main Entrance', status: 'Unlocked' },
+      { id: 'D002', name: 'Lobby', status: 'Unlocked' },
+      { id: 'D003', name: 'East Wing Hallway', status: 'Locked' },
+    ],
+  },
+  {
+    id: 'area-02',
+    name: 'Server Room',
+    description: 'Restricted access for IT personnel only.',
+    doors: [
+      { id: 'D101', name: 'Server Room Door', status: 'Locked' },
+      { id: 'D102', name: 'Maintenance Hatch', status: 'Locked' },
+    ],
+  },
+  {
+    id: 'area-03',
+    name: 'Executive Suite',
+    description: 'Access limited to executive staff.',
+    doors: [
+      { id: 'D201', name: 'CEO Office', status: 'Locked' },
+      { id: 'D202', name: 'Boardroom', status: 'Unlocked' },
+    ],
+  },
+   {
+    id: 'area-04',
+    name: 'Warehouse',
+    description: 'Shipping and receiving area.',
+    doors: [
+      { id: 'D301', name: 'Loading Bay 1', status: 'Unlocked' },
+      { id: 'D302', name: 'Loading Bay 2', status: 'Jammed' },
+      { id: 'D303', name: 'Staff Entrance', status: 'Locked' },
+    ],
+  },
+];
+
 
 export const departments = [...new Set(employees.map((e) => e.department))];
 export const eventTypes = ['Entry', 'Exit', 'Access Denied', 'System Login'];
