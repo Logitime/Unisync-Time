@@ -1,4 +1,5 @@
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+
+import { AlertCircle, CheckCircle2, Timer } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ export default function SettingsPage() {
         databases.
       </p>
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Access Control DB 1 (Master)</CardTitle>
@@ -126,9 +127,36 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+       <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
+
+       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+         <Card>
+            <CardHeader className="flex flex-row items-center gap-4">
+                <Timer className="h-8 w-8 text-primary" />
+                <div>
+                    <CardTitle>Shift & Attendance</CardTitle>
+                    <CardDescription>Define company-wide shift times and policies.</CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <div className="space-y-2">
+                    <Label htmlFor="shift-start">Default Shift Start Time</Label>
+                    <Input id="shift-start" type="time" defaultValue="09:00" />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="grace-period">Late Arrival Grace Period (minutes)</Label>
+                    <Input id="grace-period" type="number" defaultValue="5" />
+                </div>
+            </CardContent>
+        </Card>
+       </div>
+
+
       <div className="flex justify-end">
         <Button>Save Settings</Button>
       </div>
     </div>
   );
 }
+
