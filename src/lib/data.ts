@@ -15,12 +15,15 @@ export type ShiftAssignment = {
   endDate: string; // YYYY-MM-DD
 }
 
+export type UserRole = 'admin' | 'supervisor' | 'employee';
+
 export type Employee = {
   id: string;
   name: string;
   imageUrl: string;
   department: string;
   enrollmentDate: string;
+  role: UserRole;
   shiftAssignments?: ShiftAssignment[];
   accessRights?: { areaId: string; doorIds: string[] }[];
 };
@@ -84,6 +87,7 @@ export const employees: Employee[] = [
     imageUrl: 'https://picsum.photos/seed/2/32/32',
     department: 'Engineering',
     enrollmentDate: '2022-08-15',
+    role: 'admin',
     shiftAssignments: [
         { shiftId: 'shift-1', startDate: '2024-07-01', endDate: '2024-07-15'},
         { shiftId: 'shift-2', startDate: '2024-07-16', endDate: '2024-07-31'},
@@ -99,6 +103,7 @@ export const employees: Employee[] = [
     imageUrl: 'https://picsum.photos/seed/3/32/32',
     department: 'Marketing',
     enrollmentDate: '2021-03-10',
+    role: 'supervisor',
     shiftAssignments: [
         { shiftId: 'shift-1', startDate: '2024-07-01', endDate: '2024-07-31'},
     ],
@@ -112,6 +117,7 @@ export const employees: Employee[] = [
     imageUrl: 'https://picsum.photos/seed/4/32/32',
     department: 'Engineering',
     enrollmentDate: '2023-01-20',
+    role: 'employee',
      shiftAssignments: [
         { shiftId: 'shift-3', startDate: '2024-07-01', endDate: '2024-07-31'},
     ],
@@ -126,6 +132,7 @@ export const employees: Employee[] = [
     imageUrl: 'https://picsum.photos/seed/5/32/32',
     department: 'Human Resources',
     enrollmentDate: '2020-11-05',
+    role: 'employee',
      shiftAssignments: [
         { shiftId: 'shift-1', startDate: '2024-07-01', endDate: '2024-07-31'},
     ],
@@ -140,6 +147,7 @@ export const employees: Employee[] = [
     imageUrl: 'https://picsum.photos/seed/6/32/32',
     department: 'Sales',
     enrollmentDate: '2022-09-01',
+    role: 'employee',
     shiftAssignments: [
         { shiftId: 'shift-2', startDate: '2024-07-01', endDate: '2024-07-31'},
     ],
@@ -153,6 +161,7 @@ export const employees: Employee[] = [
     imageUrl: 'https://picsum.photos/seed/7/32/32',
     department: 'Human Resources',
     enrollmentDate: '2023-07-12',
+    role: 'supervisor',
     shiftAssignments: [],
     accessRights: [
         { areaId: 'area-01', doorIds: ['D001', 'D002'] },
@@ -160,6 +169,8 @@ export const employees: Employee[] = [
     ],
   },
 ];
+
+export const userRoles: UserRole[] = ['admin', 'supervisor', 'employee'];
 
 export const rawAttendanceRecords: (Omit<AttendanceRecord, 'entryTime' | 'exitTime'> & {time: string, eventType: 'Entry' | 'Exit' | 'Absent', employeeName: string, department: string, status: AttendanceRecord['status']})[] = [
   { id: 1, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-01', time: '09:05', eventType: 'Entry', status: 'Present' },
@@ -231,61 +242,56 @@ export const rawAttendanceRecords: (Omit<AttendanceRecord, 'entryTime' | 'exitTi
 const processAttendanceData = (
   records: Array<Omit<AttendanceRecord, 'entryTime' | 'exitTime'> & {time: string, eventType: string, status: AttendanceRecord['status']}>
 ): AttendanceRecord[] => {
-  const groupedByDay = new Map<string, {
-    id: number;
-    employeeId: string;
-    date: string;
-    entries: string[];
-    exits: string[];
-    statuses: Set<AttendanceRecord['status']>;
-  }>();
+    const attendanceMap: Map<string, Partial<AttendanceRecord> & { statuses: Set<AttendanceRecord['status']> }> = new Map();
 
-  for (const record of records) {
-    const key = `${record.employeeId}|${record.date}`;
-    if (!groupedByDay.has(key)) {
-      groupedByDay.set(key, {
-        id: record.id,
-        employeeId: record.employeeId,
-        date: record.date,
-        entries: [],
-        exits: [],
-        statuses: new Set(),
-      });
-    }
+    records.forEach(record => {
+        const key = `${record.employeeId}|${record.date}`;
+        if (!attendanceMap.has(key)) {
+            attendanceMap.set(key, { 
+                id: record.id,
+                employeeId: record.employeeId,
+                date: record.date,
+                entryTime: null,
+                exitTime: null,
+                statuses: new Set()
+            });
+        }
 
-    const dayData = groupedByDay.get(key)!;
-    if (record.id < dayData.id) {
-        dayData.id = record.id;
-    }
-    
-    if (record.eventType === 'Entry') {
-      dayData.entries.push(record.time);
-    } else if (record.eventType === 'Exit') {
-      dayData.exits.push(record.time);
-    }
-    dayData.statuses.add(record.status);
-  }
+        const current = attendanceMap.get(key)!;
+        if (record.id < current.id!) {
+            current.id = record.id;
+        }
 
-  return Array.from(groupedByDay.values()).map(dayData => {
-    let finalStatus: AttendanceRecord['status'] = 'Present';
-    if (dayData.statuses.has('Absent')) {
-      finalStatus = 'Absent';
-    } else if (dayData.statuses.has('Late')) {
-      finalStatus = 'Late';
-    }
+        current.statuses.add(record.status);
 
-    const earliestEntry = dayData.entries.length > 0 ? dayData.entries.sort()[0] : null;
-    const latestExit = dayData.exits.length > 0 ? dayData.exits.sort().reverse()[0] : null;
+        if (record.eventType === 'Entry' && (!current.entryTime || record.time < current.entryTime)) {
+            current.entryTime = record.time;
+        }
 
-    return {
-      id: dayData.id,
-      employeeId: dayData.employeeId,
-      date: dayData.date,
-      entryTime: finalStatus === 'Absent' ? null : earliestEntry,
-      exitTime: finalStatus === 'Absent' ? null : latestExit,
-      status: finalStatus,
-    };
-  }).sort((a,b) => a.id - b.id);
+        if (record.eventType === 'Exit' && (!current.exitTime || record.time > current.exitTime)) {
+            current.exitTime = record.time;
+        }
+    });
+
+    return Array.from(attendanceMap.values()).map(val => {
+        let status: AttendanceRecord['status'] = 'Present';
+        if (val.statuses.has('Absent')) {
+            status = 'Absent';
+             val.entryTime = null;
+             val.exitTime = null;
+        } else if (val.statuses.has('Late')) {
+            status = 'Late';
+        }
+        
+        return {
+            id: val.id!,
+            employeeId: val.employeeId!,
+            date: val.date!,
+            entryTime: val.entryTime,
+            exitTime: val.exitTime,
+            status: status
+        };
+    }).sort((a, b) => a.id - b.id);
 };
 
 

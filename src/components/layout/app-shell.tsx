@@ -2,12 +2,13 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Clock,
   FileText,
   History,
   LayoutDashboard,
+  LogIn,
   LogOut,
   Settings,
   ShieldCheck,
@@ -37,20 +38,42 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { SheetTitle } from '../ui/sheet';
+import { useAuth } from '@/hooks/use-auth';
 
 const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/attendance', icon: History, label: 'Attendance' },
-  { href: '/reports', icon: FileText, label: 'Reports' },
-  { href: '/enrollment', icon: UserPlus, label: 'Enrollment' },
-  { href: '/access-control', icon: ShieldCheck, label: 'Access Control' },
-  { href: '/shifts', icon: Clock, label: 'Shift Management' },
-  { href: '/settings', icon: Settings, label: 'Settings' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', requiredRoles: ['admin', 'supervisor', 'employee'] },
+  { href: '/attendance', icon: History, label: 'Attendance', requiredRoles: ['admin', 'supervisor', 'employee'] },
+  { href: '/reports', icon: FileText, label: 'Reports', requiredRoles: ['admin', 'supervisor'] },
+  { href: '/enrollment', icon: UserPlus, label: 'Enrollment', requiredRoles: ['admin', 'supervisor'] },
+  { href: '/access-control', icon: ShieldCheck, label: 'Access Control', requiredRoles: ['admin', 'supervisor'] },
+  { href: '/shifts', icon: Clock, label: 'Shift Management', requiredRoles: ['admin', 'supervisor'] },
+  { href: '/settings', icon: Settings, label: 'Settings', requiredRoles: ['admin'] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout, loading } = useAuth();
+
+  React.useEffect(() => {
+    if (!loading && !user && pathname !== '/login') {
+      router.push('/login');
+    }
+  }, [user, loading, pathname, router]);
+
+  if (pathname === '/login') {
+    return <main className="flex-1 p-4 sm:p-6">{children}</main>;
+  }
+
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  const visibleNavItems = navItems.filter(item => user && item.requiredRoles.includes(user.role));
 
   return (
     <SidebarProvider>
@@ -78,7 +101,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
@@ -110,31 +133,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src="https://picsum.photos/seed/1/36/36" alt="Admin" data-ai-hint="person avatar" />
-                  <AvatarFallback>AD</AvatarFallback>
+                  <AvatarImage src={user.imageUrl} alt={user.name} data-ai-hint="person avatar" />
+                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Admin</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    admin@unisync.com
+                  <p className="text-sm font-medium leading-none">{user.name}</p>
+                  <p className="text-xs capitalize leading-none text-muted-foreground">
+                    {user.role}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem disabled>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

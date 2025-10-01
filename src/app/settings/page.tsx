@@ -8,6 +8,7 @@ import {
   PlusCircle,
   Timer,
   Trash2,
+  Users,
 } from 'lucide-react';
 import * as React from 'react';
 
@@ -58,9 +59,18 @@ import {
 import {
   accessAreas as initialAccessAreas,
   shifts as initialShifts,
+  employees as initialEmployees,
+  userRoles,
   type AccessArea,
   type Shift,
+  type Employee,
+  type UserRole
 } from '@/lib/data';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 function ShiftForm({
   shift,
@@ -144,10 +154,28 @@ function ShiftForm({
 }
 
 export default function SettingsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
   const [shifts, setShifts] = React.useState<Shift[]>(initialShifts);
   const [accessAreas, setAccessAreas] = React.useState<AccessArea[]>(initialAccessAreas);
+  const [employees, setEmployees] = React.useState<Employee[]>(initialEmployees);
   const [isAddFormOpen, setIsAddFormOpen] = React.useState(false);
   const [editingShift, setEditingShift] = React.useState<Shift | null>(null);
+
+  React.useEffect(() => {
+    // Redirect if user is not an admin
+    if (user && user.role !== 'admin') {
+      router.push('/dashboard');
+      toast({
+        variant: 'destructive',
+        title: 'Access Denied',
+        description: 'You do not have permission to view this page.',
+      });
+    }
+  }, [user, router, toast]);
+
 
   const handleSaveShift = (
     shiftData: Omit<Shift, 'id'> & { id?: string }
@@ -220,6 +248,14 @@ export default function SettingsPage() {
         : area
       )
     )
+  }
+  
+  const handleRoleChange = (employeeId: string, newRole: UserRole) => {
+    setEmployees(prev => prev.map(emp => emp.id === employeeId ? { ...emp, role: newRole } : emp));
+  };
+
+  if (user?.role !== 'admin') {
+    return null; // or a loading/access denied component
   }
 
   return (
@@ -343,6 +379,48 @@ export default function SettingsPage() {
         <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
 
         <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <Users className="h-8 w-8 text-primary" />
+                <div>
+                  <CardTitle>User Role Management</CardTitle>
+                  <CardDescription>
+                    Assign roles to employees.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3 max-h-96 overflow-y-auto">
+                {employees.map(emp => (
+                  <li key={emp.id} className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={emp.imageUrl} alt={emp.name} data-ai-hint="person avatar"/>
+                        <AvatarFallback>{emp.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{emp.name}</p>
+                        <p className="text-xs text-muted-foreground">{emp.id} - {emp.department}</p>
+                      </div>
+                    </div>
+                    <Select value={emp.role} onValueChange={(value: UserRole) => handleRoleChange(emp.id, value)} disabled={emp.id === user?.id}>
+                       <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userRoles.map(role => (
+                          <SelectItem key={role} value={role} className="capitalize">{role}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
           <Card className="flex flex-col">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -529,7 +607,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex justify-end">
-          <Button>Save Settings</Button>
+          <Button onClick={() => toast({ title: 'Settings Saved!', description: 'Your changes have been saved locally.' })}>Save Settings</Button>
         </div>
       </div>
     </TooltipProvider>
