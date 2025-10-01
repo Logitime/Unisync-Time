@@ -49,10 +49,10 @@ const generateAttendanceReportPrompt = ai.definePrompt({
   output: {schema: GenerateAttendanceReportOutputSchema},
   prompt: `You are an AI assistant that generates custom reports about attendance, access events, and enrollment status based on specified parameters.
 
-  You will pull data from three databases:
-  1. Master DB (AC1): Contains employee personal data and access rights.
+  You will pull data from three distinct databases:
+  1. Master DB (AC1): Contains employee personal data and access rights for the primary system.
   2. Time & Attendance DB: Contains all clock-in/clock-out records.
-  3. Access Control DB 2: A secondary access control database.
+  3. Access Control DB 2: Contains access control data for a separate, secondary system.
 
   Date Range: {{{dateRange}}}
   Employee ID: {{{employeeId}}}
