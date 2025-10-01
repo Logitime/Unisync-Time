@@ -24,22 +24,20 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { rawAttendanceRecords, employees, departments } from '@/lib/data';
+import { rawAttendanceRecords, employees, departments, attendanceRecords } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AttendanceTrendsChart } from './components/attendance-trends-chart';
+import { DoorStatusChart } from './components/door-status-chart';
 
 export default function DashboardPage() {
   const recentAttendance = rawAttendanceRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const issuesCount = rawAttendanceRecords.filter(
+  const issuesCount = attendanceRecords.filter(
     (r) => r.status === 'Late' || r.status === 'Absent'
   ).length;
 
   const getEmployeeImageUrl = (employeeId: string) => {
     return employees.find(e => e.id === employeeId)?.imageUrl || '';
   }
-   const getEmployeeName = (employeeId: string) => {
-    return employees.find(e => e.id === employeeId)?.name || '';
-  }
-
 
   return (
     <div className="flex flex-col gap-6">
@@ -74,27 +72,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              DB Sync Status
-            </CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="text-2xl font-bold">Synced</div>
-              <p className="text-xs text-muted-foreground">
-                All databases are up-to-date
-              </p>
-            </div>
-            <Button size="sm" variant="outline" className="w-full">
-              <RefreshCcw className="mr-2" />
-              Sync Databases
-            </Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Attendance Issues
+              Attendance Issues Today
             </CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -103,6 +81,41 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">
               Late arrivals or absences
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              DB Sync Status
+            </CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+             <div className="text-2xl font-bold">Synced</div>
+              <p className="text-xs text-muted-foreground">
+                Last synced: 5 mins ago
+              </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <Card className="col-span-1 lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Attendance Trends</CardTitle>
+            <CardDescription>Last 7 days</CardDescription>
+          </CardHeader>
+          <CardContent className="pl-2">
+            <AttendanceTrendsChart />
+          </CardContent>
+        </Card>
+        <Card className="col-span-1 lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Door Status</CardTitle>
+            <CardDescription>Live overview of all doors</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DoorStatusChart />
           </CardContent>
         </Card>
       </div>

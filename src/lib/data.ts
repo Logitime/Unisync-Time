@@ -1,4 +1,6 @@
 
+import { subDays, format } from 'date-fns';
+
 export type Shift = {
   id: string;
   name: string;
@@ -212,69 +214,75 @@ export const rawAttendanceRecords: (Omit<AttendanceRecord, 'entryTime' | 'exitTi
   { id: 50, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-09', time: '17:00', eventType: 'Exit', status: 'Present' },
   { id: 51, employeeId: 'E1002', employeeName: 'Bob Williams', department: 'Marketing', date: '2024-07-09', time: '00:00', eventType: 'Absent', status: 'Absent' },
   { id: 52, employeeId: 'M2005', employeeName: 'Charlie Brown', department: 'Engineering', date: '2024-07-09', time: '06:00', eventType: 'Entry', status: 'Present' },
-  { id: 53, employeeId: 'M2005', employeeName: 'Charlie Brown', department: 'Engineering', date: '2024-07-09', time: '14:00', eventType: 'Exit', status: 'Present' }
+  { id: 53, employeeId: 'M2005', employeeName: 'Charlie Brown', department: 'Engineering', date: '2024-07-09', time: '14:00', eventType: 'Exit', status: 'Present' },
+  { id: 54, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-10', time: '09:00', eventType: 'Entry', status: 'Present' },
+  { id: 55, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-10', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 56, employeeId: 'E1002', employeeName: 'Bob Williams', department: 'Marketing', date: '2024-07-10', time: '09:05', eventType: 'Entry', status: 'Present' },
+  { id: 57, employeeId: 'E1002', employeeName: 'Bob Williams', department: 'Marketing', date: '2024-07-10', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 58, employeeId: 'M2005', employeeName: 'Charlie Brown', department: 'Engineering', date: '2024-07-10', time: '06:10', eventType: 'Entry', status: 'Late' },
+  { id: 59, employeeId: 'M2005', employeeName: 'Charlie Brown', department: 'Engineering', date: '2024-07-10', time: '14:00', eventType: 'Exit', status: 'Present' },
+  { id: 60, employeeId: 'F3108', employeeName: 'Diana Miller', department: 'Human Resources', date: '2024-07-10', time: '00:00', eventType: 'Absent', status: 'Absent' },
+  { id: 61, employeeId: 'S4011', employeeName: 'Ethan Davis', department: 'Sales', date: '2024-07-10', time: '17:00', eventType: 'Entry', status: 'Present' },
+  { id: 62, employeeId: 'S4011', employeeName: 'Ethan Davis', department: 'Sales', date: '2024-07-10', time: '01:00', eventType: 'Exit', status: 'Present' },
+  { id: 63, employeeId: 'F3109', employeeName: 'Fiona Garcia', department: 'Human Resources', date: '2024-07-10', time: '09:00', eventType: 'Entry', status: 'Present' },
+  { id: 64, employeeId: 'F3109', employeeName: 'Fiona Garcia', department: 'Human Resources', date: '2024-07-10', time: '17:00', eventType: 'Exit', status: 'Present' }
 ];
 
-// Helper to group raw records by employee and date
-const groupedRecords = rawAttendanceRecords.reduce((acc, record) => {
-  const key = `${record.employeeId}|${record.date}`;
-  if (!acc[key]) {
-    acc[key] = {
-      id: record.id,
-      employeeId: record.employeeId,
-      date: record.date,
-      entries: [],
-      exits: [],
-      isAbsent: false,
-      isLate: false,
-    };
-  }
+const processAttendanceData = (records: typeof rawAttendanceRecords): AttendanceRecord[] => {
+  const grouped = new Map<string, { id: number; employeeId: string; date: string; entries: string[]; exits: string[]; status: 'Present' | 'Late' | 'Absent' }>();
 
-  if (record.eventType === 'Entry') {
-    acc[key].entries.push(record.time);
-    if (record.status === 'Late') {
-      acc[key].isLate = true;
+  for (const record of records) {
+    const key = `${record.employeeId}|${record.date}`;
+    let dayData = grouped.get(key);
+
+    if (!dayData) {
+      dayData = {
+        id: record.id,
+        employeeId: record.employeeId,
+        date: record.date,
+        entries: [],
+        exits: [],
+        status: 'Present', 
+      };
+      grouped.set(key, dayData);
     }
-  } else if (record.eventType === 'Exit') {
-    acc[key].exits.push(record.time);
-  } else if (record.status === 'Absent') {
-    acc[key].isAbsent = true;
+    
+    if (record.status === 'Absent') {
+      dayData.status = 'Absent';
+      dayData.entries = [];
+      dayData.exits = [];
+    } else if (dayData.status !== 'Absent') {
+      if (record.eventType === 'Entry') {
+        dayData.entries.push(record.time);
+      } else if (record.eventType === 'Exit') {
+        dayData.exits.push(record.time);
+      }
+      
+      if (record.status === 'Late') {
+        dayData.status = 'Late';
+      }
+    }
+     if (record.id < dayData.id) {
+        dayData.id = record.id;
+    }
   }
-  
-  // Keep the earliest record ID
-  if (record.id < acc[key].id) {
-    acc[key].id = record.id;
-  }
-  
-  return acc;
-}, {} as Record<string, { id: number, employeeId: string, date: string, entries: string[], exits: string[], isAbsent: boolean, isLate: boolean }>);
 
-
-// Process grouped records into a clean attendance list
-export const attendanceRecords: AttendanceRecord[] = Object.values(groupedRecords).map(group => {
-  if (group.isAbsent) {
+  return Array.from(grouped.values()).map(dayData => {
+    const earliestEntry = dayData.entries.length > 0 ? dayData.entries.reduce((a, b) => (a < b ? a : b)) : null;
+    const latestExit = dayData.exits.length > 0 ? dayData.exits.reduce((a, b) => (a > b ? a : b)) : null;
+    
     return {
-      id: group.id,
-      employeeId: group.employeeId,
-      date: group.date,
-      entryTime: null,
-      exitTime: null,
-      status: 'Absent',
+      id: dayData.id,
+      employeeId: dayData.employeeId,
+      date: dayData.date,
+      entryTime: earliestEntry,
+      exitTime: latestExit,
+      status: dayData.status,
     };
-  }
-  
-  const earliestEntry = group.entries.sort((a, b) => a.localeCompare(b))[0] || null;
-  const latestExit = group.exits.sort((a, b) => b.localeCompare(a))[0] || null;
-  
-  return {
-    id: group.id,
-    employeeId: group.employeeId,
-    date: group.date,
-    entryTime: earliestEntry,
-    exitTime: latestExit,
-    status: group.isLate ? 'Late' : 'Present',
-  };
-});
+  });
+};
+
+export const attendanceRecords: AttendanceRecord[] = processAttendanceData(rawAttendanceRecords);
 
 
 export const accessAreas: AccessArea[] = [
@@ -322,4 +330,32 @@ export const accessAreas: AccessArea[] = [
 export const departments = [...new Set(employees.map((e) => e.department))];
 export const eventTypes = ['Entry', 'Exit', 'Access Denied', 'System Login'];
 
-    
+
+// Data for Charts
+
+// 1. Daily Attendance Trends
+const last7Days = Array.from({ length: 7 }, (_, i) => format(subDays(new Date(), i), 'yyyy-MM-dd')).reverse();
+
+export const dailyAttendanceData = last7Days.map(date => {
+  const recordsForDay = attendanceRecords.filter(r => r.date === date);
+  return {
+    date,
+    present: recordsForDay.filter(r => r.status === 'Present').length,
+    late: recordsForDay.filter(r => r.status === 'Late').length,
+    absent: recordsForDay.filter(r => r.status === 'Absent').length,
+  };
+});
+
+// 2. Door Status Overview
+const allDoors = accessAreas.flatMap(area => area.doors);
+const doorStatusCounts = allDoors.reduce((acc, door) => {
+  const status = door.status.toLowerCase();
+  acc[status] = (acc[status] || 0) + 1;
+  return acc;
+}, {} as Record<string, number>);
+
+export const doorStatusData = Object.entries(doorStatusCounts).map(([status, count]) => ({
+  status: status.charAt(0).toUpperCase() + status.slice(1),
+  count,
+  fill: status === 'unlocked' ? 'hsl(var(--chart-2))' : status === 'locked' ? 'hsl(var(--chart-3))' : 'hsl(var(--destructive))',
+}));
