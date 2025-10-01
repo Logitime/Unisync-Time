@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  Clock,
   FileText,
   History,
   LayoutDashboard,
@@ -36,6 +37,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { SheetTitle } from '../ui/sheet';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -43,6 +45,7 @@ const navItems = [
   { href: '/reports', icon: FileText, label: 'Reports' },
   { href: '/enrollment', icon: UserPlus, label: 'Enrollment' },
   { href: '/access-control', icon: ShieldCheck, label: 'Access Control' },
+  { href: '/shifts', icon: Clock, label: 'Shift Management' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
@@ -56,6 +59,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="border-sidebar-border"
         variant="sidebar"
       >
+        <SheetTitle className="sr-only">Main Menu</SheetTitle>
         <SidebarHeader className="h-14 justify-center p-0">
           <Link href="/dashboard" className="flex items-center gap-2">
             <Logo className="size-7 text-primary" />

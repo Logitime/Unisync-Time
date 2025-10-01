@@ -48,24 +48,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-
-type Shift = {
-  id: string;
-  name: string;
-  startTime: string;
-  endTime: string;
-  gracePeriod: number;
-};
-
-const initialShifts: Shift[] = [
-  {
-    id: 'shift-1',
-    name: 'Day Shift',
-    startTime: '09:00',
-    endTime: '17:00',
-    gracePeriod: 5,
-  },
-];
+import { shifts as initialShifts, type Shift } from '@/lib/data';
 
 function ShiftForm({
   shift,
@@ -150,7 +133,7 @@ function ShiftForm({
 
 export default function SettingsPage() {
   const [shifts, setShifts] = React.useState<Shift[]>(initialShifts);
-  const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const [isAddFormOpen, setIsAddFormOpen] = React.useState(false);
   const [editingShift, setEditingShift] = React.useState<Shift | null>(null);
 
   const handleSaveShift = (
@@ -158,26 +141,25 @@ export default function SettingsPage() {
   ) => {
     if (shiftData.id) {
       setShifts(
-        shifts.map((s) => (s.id === shiftData.id ? { ...s, ...shiftData } : s))
+        shifts.map((s) => (s.id === shiftData.id ? { ...s, ...shiftData } as Shift : s))
       );
     } else {
       setShifts([
         ...shifts,
-        { ...shiftData, id: `shift-${Date.now()}` },
+        { ...shiftData, id: `shift-${Date.now()}` } as Shift,
       ]);
     }
-    setIsFormOpen(false);
+    setIsAddFormOpen(false);
     setEditingShift(null);
   };
 
   const handleAddNew = () => {
     setEditingShift(null);
-    setIsFormOpen(true);
+    setIsAddFormOpen(true);
   };
 
   const handleEdit = (shift: Shift) => {
     setEditingShift(shift);
-    setIsFormOpen(true);
   };
 
   const handleDelete = (shiftId: string) => {
@@ -305,121 +287,137 @@ export default function SettingsPage() {
         <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <Card className="flex flex-col">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <Timer className="h-8 w-8 text-primary" />
-                    <div>
-                      <CardTitle>Shift &amp; Attendance</CardTitle>
-                      <CardDescription>
-                        Define company-wide shift times and policies.
-                      </CardDescription>
-                    </div>
+          <Card className="flex flex-col">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Timer className="h-8 w-8 text-primary" />
+                  <div>
+                    <CardTitle>Shift &amp; Attendance</CardTitle>
+                    <CardDescription>
+                      Define company-wide shift times and policies.
+                    </CardDescription>
                   </div>
+                </div>
+                 <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleAddNew}
-                      >
-                        <PlusCircle className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
+                    <DialogTrigger asChild>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleAddNew}
+                        >
+                          <PlusCircle className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                    </DialogTrigger>
                     <TooltipContent>Add new shift</TooltipContent>
                   </Tooltip>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {shifts.length > 0 ? (
-                  <ul className="space-y-2">
-                    {shifts.map((shift) => (
-                      <li
-                        key={shift.id}
-                        className="flex items-center justify-between rounded-md border p-3"
-                      >
-                        <div>
-                          <p className="font-medium">{shift.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {shift.startTime} - {shift.endTime} (
-                            {shift.gracePeriod} min grace)
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => handleEdit(shift)}
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Shift</DialogTitle>
+                      <DialogDescription>
+                        Create a new shift schedule.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <ShiftForm
+                      shift={null}
+                      onSave={handleSaveShift}
+                      onCancel={() => setIsAddFormOpen(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 space-y-4">
+              {shifts.length > 0 ? (
+                <ul className="space-y-2">
+                  {shifts.map((shift) => (
+                    <li
+                      key={shift.id}
+                      className="flex items-center justify-between rounded-md border p-3"
+                    >
+                      <div>
+                        <p className="font-medium">{shift.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {shift.startTime} - {shift.endTime} (
+                          {shift.gracePeriod} min grace)
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Dialog open={editingShift?.id === shift.id} onOpenChange={(isOpen) => !isOpen && setEditingShift(null)}>
+                           <DialogTrigger asChild>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleEdit(shift)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit shift</TooltipContent>
+                              </Tooltip>
+                           </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Edit Shift</DialogTitle>
+                              <DialogDescription>
+                                Update the details for this shift.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <ShiftForm
+                              shift={editingShift}
+                              onSave={handleSaveShift}
+                              onCancel={() => setEditingShift(null)}
+                            />
+                          </DialogContent>
+                        </Dialog>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="destructive" size="icon">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Delete shift</TooltipContent>
+                            </Tooltip>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you sure?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will
+                                permanently delete the shift.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(shift.id)}
                               >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Edit shift</TooltipContent>
-                          </Tooltip>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="destructive" size="icon">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you sure?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will
-                                  permanently delete the shift.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(shift.id)}
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    No shifts defined.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingShift ? 'Edit Shift' : 'Add New Shift'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingShift
-                    ? 'Update the details for this shift.'
-                    : 'Create a new shift schedule.'}
-                </DialogDescription>
-              </DialogHeader>
-              <ShiftForm
-                shift={editingShift}
-                onSave={handleSaveShift}
-                onCancel={() => {
-                  setIsFormOpen(false);
-                  setEditingShift(null);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex h-full items-center justify-center text-center text-muted-foreground">
+                  No shifts defined.
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="flex justify-end">

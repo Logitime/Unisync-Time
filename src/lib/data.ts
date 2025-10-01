@@ -1,8 +1,17 @@
+export type Shift = {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  gracePeriod: number; // in minutes
+};
+
 export type Employee = {
   id: string;
   name: string;
   department: string;
   enrollmentDate: string;
+  shiftId?: string;
   accessRights?: { areaId: string; doorIds: string[] }[];
 };
 
@@ -28,12 +37,37 @@ export type AccessArea = {
   doors: Door[];
 };
 
+export const shifts: Shift[] = [
+  {
+    id: 'shift-1',
+    name: 'Day Shift',
+    startTime: '09:00',
+    endTime: '17:00',
+    gracePeriod: 10,
+  },
+  {
+    id: 'shift-2',
+    name: 'Night Shift',
+    startTime: '17:00',
+    endTime: '01:00',
+    gracePeriod: 10,
+  },
+    {
+    id: 'shift-3',
+    name: 'Morning Shift',
+    startTime: '06:00',
+    endTime: '14:00',
+    gracePeriod: 5,
+  },
+];
+
 export const employees: Employee[] = [
   {
     id: 'E1001',
     name: 'Alice Johnson',
     department: 'Engineering',
     enrollmentDate: '2022-08-15',
+    shiftId: 'shift-1',
     accessRights: [
       { areaId: 'area-01', doorIds: ['D001', 'D002'] },
       { areaId: 'area-02', doorIds: ['D101'] },
@@ -44,6 +78,7 @@ export const employees: Employee[] = [
     name: 'Bob Williams',
     department: 'Marketing',
     enrollmentDate: '2021-03-10',
+    shiftId: 'shift-1',
     accessRights: [
         { areaId: 'area-01', doorIds: ['D001'] }
     ],
@@ -53,6 +88,7 @@ export const employees: Employee[] = [
     name: 'Charlie Brown',
     department: 'Engineering',
     enrollmentDate: '2023-01-20',
+    shiftId: 'shift-1',
     accessRights: [
       { areaId: 'area-01', doorIds: ['D001', 'D002', 'D003'] },
       { areaId: 'area-02', doorIds: ['D101', 'D102'] },
@@ -63,6 +99,7 @@ export const employees: Employee[] = [
     name: 'Diana Miller',
     department: 'Human Resources',
     enrollmentDate: '2020-11-05',
+    shiftId: 'shift-1',
     accessRights: [
         { areaId: 'area-01', doorIds: ['D001', 'D002'] },
         { areaId: 'area-03', doorIds: ['D202'] },
@@ -73,6 +110,7 @@ export const employees: Employee[] = [
     name: 'Ethan Davis',
     department: 'Sales',
     enrollmentDate: '2022-09-01',
+    shiftId: 'shift-2',
      accessRights: [
         { areaId: 'area-01', doorIds: ['D001'] }
     ],
@@ -82,6 +120,7 @@ export const employees: Employee[] = [
     name: 'Fiona Garcia',
     department: 'Human Resources',
     enrollmentDate: '2023-07-12',
+    shiftId: 'shift-1',
     accessRights: [
         { areaId: 'area-01', doorIds: ['D001', 'D002'] },
         { areaId: 'area-03', doorIds: ['D202'] },
