@@ -59,7 +59,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="border-sidebar-border"
         variant="sidebar"
       >
-        <SheetTitle className="sr-only">Main Menu</SheetTitle>
         <SidebarHeader className="h-14 justify-center p-0">
           <Link href="/dashboard" className="flex items-center gap-2">
             <Logo className="size-7 text-primary" />
