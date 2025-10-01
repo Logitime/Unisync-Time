@@ -171,6 +171,21 @@ export const rawAttendanceRecords: (Omit<AttendanceRecord, 'entryTime' | 'exitTi
   { id: 17, employeeId: 'F3108', employeeName: 'Diana Miller', department: 'Human Resources', date: '2024-07-29', time: '17:00', eventType: 'Exit', status: 'Present' },
   { id: 18, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-27', time: '09:00', eventType: 'Entry', status: 'Present' },
   { id: 19, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-27', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 20, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-26', time: '09:12', eventType: 'Entry', status: 'Late' },
+  { id: 21, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-26', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 22, employeeId: 'E1002', employeeName: 'Bob Williams', department: 'Marketing', date: '2024-07-26', time: '09:00', eventType: 'Entry', status: 'Present' },
+  { id: 23, employeeId: 'E1002', employeeName: 'Bob Williams', department: 'Marketing', date: '2024-07-26', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 24, employeeId: 'S4011', employeeName: 'Ethan Davis', department: 'Sales', date: '2024-07-26', time: '09:00', eventType: 'Entry', status: 'Present' },
+  { id: 25, employeeId: 'S4011', employeeName: 'Ethan Davis', department: 'Sales', date: '2024-07-26', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 26, employeeId: 'F3108', employeeName: 'Diana Miller', department: 'Human Resources', date: '2024-07-25', time: '09:00', eventType: 'Entry', status: 'Present' },
+  { id: 27, employeeId: 'F3108', employeeName: 'Diana Miller', department: 'Human Resources', date: '2024-07-25', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 28, employeeId: 'E1001', employeeName: 'Alice Johnson', department: 'Engineering', date: '2024-07-24', time: '00:00', eventType: 'Entry', status: 'Absent' },
+  { id: 29, employeeId: 'M2005', employeeName: 'Charlie Brown', department: 'Engineering', date: '2024-07-24', time: '06:05', eventType: 'Entry', status: 'Present' },
+  { id: 30, employeeId: 'M2005', employeeName: 'Charlie Brown', department: 'Engineering', date: '2024-07-24', time: '14:00', eventType: 'Exit', status: 'Present' },
+  { id: 31, employeeId: 'F3109', employeeName: 'Fiona Garcia', department: 'Human Resources', date: '2024-07-22', time: '09:00', eventType: 'Entry', status: 'Present' },
+  { id: 32, employeeId: 'F3109', employeeName: 'Fiona Garcia', department: 'Human Resources', date: '2024-07-22', time: '17:00', eventType: 'Exit', status: 'Present' },
+  { id: 33, employeeId: 'E1002', employeeName: 'Bob Williams', department: 'Marketing', date: '2024-07-22', time: '09:20', eventType: 'Entry', status: 'Late' },
+  { id: 34, employeeId: 'E1002', employeeName: 'Bob Williams', department: 'Marketing', date: '2024-07-22', time: '17:00', eventType: 'Exit', status: 'Present' },
 ];
 
 export const attendanceRecords: AttendanceRecord[] = rawAttendanceRecords.reduce((acc: AttendanceRecord[], record) => {
@@ -184,13 +199,21 @@ export const attendanceRecords: AttendanceRecord[] = rawAttendanceRecords.reduce
       exitTime: null,
       status: record.status, // Default status from first event
     };
-    acc.push(existing);
+    if (record.status !== 'Absent') {
+        acc.push(existing);
+    } else {
+        // For absent records, create a record without pushing to acc yet if only exit event is found
+    }
   }
 
   if (record.eventType === 'Entry') {
     existing.entryTime = record.time;
     // Entry status (Late/Present) is more important
     existing.status = record.status; 
+    // If it's an absent entry, we can push it now
+    if (record.status === 'Absent' && !acc.find(r => r.id === existing!.id)) {
+        acc.push(existing);
+    }
   } else if (record.eventType === 'Exit') {
     existing.exitTime = record.time;
   }
