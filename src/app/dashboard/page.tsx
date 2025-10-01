@@ -1,14 +1,16 @@
+
 import {
   AlertTriangle,
   Building2,
-  CalendarClock,
   Database,
+  RefreshCcw,
   Users,
 } from 'lucide-react';
 
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -21,6 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { attendanceRecords, employees, departments } from '@/lib/data';
 
 export default function DashboardPage() {
@@ -66,11 +69,17 @@ export default function DashboardPage() {
             </CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Synced</div>
-            <p className="text-xs text-muted-foreground">
-              All databases are up-to-date
-            </p>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="text-2xl font-bold">Synced</div>
+              <p className="text-xs text-muted-foreground">
+                All databases are up-to-date
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="w-full">
+              <RefreshCcw className="mr-2" />
+              Sync Databases
+            </Button>
           </CardContent>
         </Card>
         <Card>
@@ -92,6 +101,9 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>
+            A summary of recent employee attendance events.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -118,7 +130,12 @@ export default function DashboardPage() {
                       variant={
                         record.status === 'Present'
                           ? 'secondary'
-                          : 'destructive'
+                          : record.status === 'Late'
+                            ? 'default'
+                            : 'destructive'
+                      }
+                      className={
+                        record.status === 'Late' ? 'bg-amber-500 text-white' : ''
                       }
                     >
                       {record.status}
