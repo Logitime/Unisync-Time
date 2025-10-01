@@ -3,6 +3,7 @@ export type Employee = {
   name: string;
   department: string;
   enrollmentDate: string;
+  accessRights?: { areaId: string; doorIds: string[] }[];
 };
 
 export type AttendanceRecord = {
@@ -33,36 +34,58 @@ export const employees: Employee[] = [
     name: 'Alice Johnson',
     department: 'Engineering',
     enrollmentDate: '2022-08-15',
+    accessRights: [
+      { areaId: 'area-01', doorIds: ['D001', 'D002'] },
+      { areaId: 'area-02', doorIds: ['D101'] },
+    ],
   },
   {
     id: 'E1002',
     name: 'Bob Williams',
     department: 'Marketing',
     enrollmentDate: '2021-03-10',
+    accessRights: [
+        { areaId: 'area-01', doorIds: ['D001'] }
+    ],
   },
   {
     id: 'M2005',
     name: 'Charlie Brown',
     department: 'Engineering',
     enrollmentDate: '2023-01-20',
+    accessRights: [
+      { areaId: 'area-01', doorIds: ['D001', 'D002', 'D003'] },
+      { areaId: 'area-02', doorIds: ['D101', 'D102'] },
+    ],
   },
   {
     id: 'F3108',
     name: 'Diana Miller',
     department: 'Human Resources',
     enrollmentDate: '2020-11-05',
+    accessRights: [
+        { areaId: 'area-01', doorIds: ['D001', 'D002'] },
+        { areaId: 'area-03', doorIds: ['D202'] },
+    ],
   },
   {
     id: 'S4011',
     name: 'Ethan Davis',
     department: 'Sales',
     enrollmentDate: '2022-09-01',
+     accessRights: [
+        { areaId: 'area-01', doorIds: ['D001'] }
+    ],
   },
   {
     id: 'F3109',
     name: 'Fiona Garcia',
     department: 'Human Resources',
     enrollmentDate: '2023-07-12',
+    accessRights: [
+        { areaId: 'area-01', doorIds: ['D001', 'D002'] },
+        { areaId: 'area-03', doorIds: ['D202'] },
+    ],
   },
 ];
 
