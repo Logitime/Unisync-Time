@@ -14,9 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { attendanceRecords, type AttendanceRecord } from '@/lib/data';
+import { rawAttendanceRecords } from '@/lib/data';
 
-function downloadCsv(data: (AttendanceRecord & { employeeName: string, department: string })[]) {
+type Record = (typeof rawAttendanceRecords)[0];
+
+function downloadCsv(data: Record[]) {
   const headers = ['ID', 'Employee ID', 'Employee Name', 'Department', 'Date', 'Time', 'Event Type', 'Status'];
   const csvRows = [
     headers.join(','),
@@ -49,7 +51,7 @@ function downloadCsv(data: (AttendanceRecord & { employeeName: string, departmen
 export function AttendanceTable() {
   const [filter, setFilter] = React.useState('');
 
-  const filteredData = attendanceRecords.filter(
+  const filteredData = rawAttendanceRecords.filter(
     (record) =>
       record.employeeName.toLowerCase().includes(filter.toLowerCase()) ||
       record.employeeId.toLowerCase().includes(filter.toLowerCase()) ||
@@ -61,7 +63,7 @@ export function AttendanceTable() {
       <CardHeader>
         <CardTitle>Consolidated Attendance Data</CardTitle>
         <CardDescription>
-          This table displays records from the Time & Attendance database.
+          This table displays raw, unprocessed records from the Time & Attendance database.
         </CardDescription>
         <div className="flex items-center justify-between pt-2">
           <div className="relative w-full max-w-sm">
