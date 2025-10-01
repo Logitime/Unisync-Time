@@ -195,7 +195,7 @@ export function ReportGenerator() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">All Employees</SelectItem>
+                        <SelectItem value="all">All Employees</SelectItem>
                         {employees.map((emp) => (
                           <SelectItem key={emp.id} value={emp.id}>
                             {emp.name} ({emp.id})
@@ -219,7 +219,7 @@ export function ReportGenerator() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">All Departments</SelectItem>
+                        <SelectItem value="all">All Departments</SelectItem>
                         {departments.map((dept) => (
                           <SelectItem key={dept} value={dept}>
                             {dept}
@@ -243,7 +243,7 @@ export function ReportGenerator() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">All Events</SelectItem>
+                        <SelectItem value="all">All Events</SelectItem>
                         {eventTypes.map((type) => (
                           <SelectItem key={type} value={type}>
                             {type}
