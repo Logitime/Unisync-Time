@@ -39,6 +39,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AttendanceCalendar, attendanceColors } from './attendance-calendar';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
 const calculateTotalHours = (records: AttendanceRecord[], month: Date): string => {
     const monthStr = format(month, 'yyyy-MM');
@@ -57,6 +58,19 @@ const calculateTotalHours = (records: AttendanceRecord[], month: Date): string =
     const minutes = totalMinutes % 60;
 
     return `${hours}h ${minutes}m`;
+}
+
+const calculateAttendancePercentage = (records: AttendanceRecord[], month: Date): number => {
+    const monthStr = format(month, 'yyyy-MM');
+    const monthlyRecords = records.filter(r => r.date.startsWith(monthStr));
+    const presentOrLateDays = monthlyRecords.filter(r => r.status === 'Present' || r.status === 'Late').length;
+    
+    // Assuming a fixed number of workdays for simplicity, e.g., 22
+    const totalWorkDays = 22; 
+
+    if (totalWorkDays === 0) return 0;
+    
+    return Math.round((presentOrLateDays / totalWorkDays) * 100);
 }
 
 export function AttendanceByEmployee() {
@@ -96,6 +110,20 @@ export function AttendanceByEmployee() {
             return (
                 <div className="font-medium text-right w-24">
                     {calculateTotalHours(employeeRecords, currentMonth)}
+                </div>
+            )
+        }
+    },
+    {
+        id: 'attendance-percentage',
+        header: 'Presence %',
+        cell: ({ row }) => {
+            const employeeRecords = attendanceRecords.filter(r => r.employeeId === row.original.id);
+            const percentage = calculateAttendancePercentage(employeeRecords, currentMonth);
+            return (
+                <div className="w-28 space-y-1">
+                    <Progress value={percentage} className="h-2" />
+                    <div className="text-xs text-right text-muted-foreground">{percentage}%</div>
                 </div>
             )
         }
