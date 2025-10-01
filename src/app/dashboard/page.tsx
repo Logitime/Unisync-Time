@@ -24,11 +24,11 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { attendanceRecords, employees, departments } from '@/lib/data';
+import { rawAttendanceRecords, employees, departments } from '@/lib/data';
 
 export default function DashboardPage() {
-  const recentAttendance = attendanceRecords.slice(0, 5);
-  const issuesCount = attendanceRecords.filter(
+  const recentAttendance = rawAttendanceRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
+  const issuesCount = rawAttendanceRecords.filter(
     (r) => r.status === 'Late' || r.status === 'Absent'
   ).length;
 
@@ -111,6 +111,7 @@ export default function DashboardPage() {
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Department</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
                 <TableHead>Event</TableHead>
                 <TableHead>Status</TableHead>
@@ -123,6 +124,7 @@ export default function DashboardPage() {
                     {record.employeeName}
                   </TableCell>
                   <TableCell>{record.department}</TableCell>
+                  <TableCell>{record.date}</TableCell>
                   <TableCell>{record.time}</TableCell>
                   <TableCell>{record.eventType}</TableCell>
                   <TableCell>
