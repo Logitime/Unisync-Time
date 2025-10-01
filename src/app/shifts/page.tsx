@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 import {
-  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   MoreHorizontal,
   Calendar as CalendarIcon,
@@ -19,7 +20,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { addDays, format } from 'date-fns';
+import { addDays, format, subMonths, addMonths } from 'date-fns';
 import { type DateRange } from 'react-day-picker';
 
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { ShiftCalendar } from './components/shift-calendar';
 
 export default function ShiftManagementPage() {
   const { toast } = useToast();
@@ -80,6 +82,7 @@ export default function ShiftManagementPage() {
     from: new Date(),
     to: addDays(new Date(), 7),
   });
+  const [currentMonth, setCurrentMonth] = React.useState(new Date());
 
 
   const getShiftName = (shiftId?: string) => {
@@ -113,20 +116,31 @@ export default function ShiftManagementPage() {
     {
       accessorKey: 'name',
       header: 'Employee',
-      cell: ({ row }) => <div>{row.getValue('name')}</div>,
-    },
-    {
-      accessorKey: 'id',
-      header: 'Employee ID',
+      cell: ({ row }) => (
+        <div className="w-32">
+          <div className="font-medium">{row.getValue('name')}</div>
+          <div className="text-xs text-muted-foreground">{row.original.id}</div>
+        </div>
+      ),
     },
     {
       accessorKey: 'department',
       header: 'Department',
+      cell: ({ row }) => <div className="w-24">{row.getValue('department')}</div>,
     },
     {
       accessorKey: 'shiftId',
       header: 'Assigned Shift',
-      cell: ({ row }) => getShiftName(row.getValue('shiftId')),
+      cell: ({ row }) => <div className="w-28">{getShiftName(row.getValue('shiftId'))}</div>,
+    },
+    {
+        id: 'monthly-schedule',
+        header: () => (
+          <div className="text-center w-full">{format(currentMonth, 'MMMM yyyy')}</div>
+        ),
+        cell: ({ row }) => (
+          <ShiftCalendar shiftId={row.original.shiftId} month={currentMonth} />
+        ),
     },
     {
       id: 'actions',
@@ -201,6 +215,14 @@ export default function ShiftManagementPage() {
 
 
     table.resetRowSelection();
+  }
+  
+  const goToPreviousMonth = () => {
+    setCurrentMonth(prev => subMonths(prev, 1));
+  }
+
+  const goToNextMonth = () => {
+    setCurrentMonth(prev => addMonths(prev, 1));
   }
 
   return (
@@ -282,6 +304,15 @@ export default function ShiftManagementPage() {
             className="max-w-sm"
           />
            <div className="ml-auto flex items-center gap-4">
+             <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="w-32 text-center font-medium">{format(currentMonth, 'MMMM yyyy')}</span>
+                <Button variant="outline" size="icon" onClick={goToNextMonth}>
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+             </div>
              <Select
               value={
                 (table.getColumn('department')?.getFilterValue() as string) ?? 'all'
@@ -342,7 +373,7 @@ export default function ShiftManagementPage() {
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} style={{width: header.getSize() !== 150 ? header.getSize() : undefined }}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
