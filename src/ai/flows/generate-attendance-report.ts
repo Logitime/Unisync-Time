@@ -49,13 +49,18 @@ const generateAttendanceReportPrompt = ai.definePrompt({
   output: {schema: GenerateAttendanceReportOutputSchema},
   prompt: `You are an AI assistant that generates custom reports about attendance, access events, and enrollment status based on specified parameters.
 
+  You will pull data from three databases:
+  1. Master DB (AC1): Contains employee personal data and access rights.
+  2. Time & Attendance DB: Contains all clock-in/clock-out records.
+  3. Access Control DB 2: A secondary access control database.
+
   Date Range: {{{dateRange}}}
   Employee ID: {{{employeeId}}}
   Department: {{{department}}}
   Event Type: {{{eventType}}}
   Additional Parameters: {{{additionalParameters}}}
 
-  Generate a detailed report based on the above parameters. The report should be well-formatted and easy to understand.`,
+  Generate a detailed report based on the above parameters, correlating data from the different sources as needed. The report should be well-formatted and easy to understand.`,
 });
 
 const generateAttendanceReportFlow = ai.defineFlow(

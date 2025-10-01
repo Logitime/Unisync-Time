@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Download, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -60,6 +60,9 @@ export function AttendanceTable() {
     <Card>
       <CardHeader>
         <CardTitle>Consolidated Attendance Data</CardTitle>
+        <CardDescription>
+          This table displays records from the Time & Attendance database.
+        </CardDescription>
         <div className="flex items-center justify-between pt-2">
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
