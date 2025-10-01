@@ -60,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         variant="sidebar"
       >
         <SidebarHeader className="h-14 justify-center p-0">
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex items-center gap-2" prefetch={true}>
             <Logo className="size-7 text-primary" />
             <span
               data-sidebar="brand-name"
@@ -87,7 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     children: item.label,
                   }}
                 >
-                  <Link href={item.href}>
+                  <Link href={item.href} prefetch={true}>
                     <item.icon />
                     <span>{item.label}</span>
                   </Link>
