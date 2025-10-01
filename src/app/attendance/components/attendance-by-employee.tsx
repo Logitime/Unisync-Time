@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -41,6 +42,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { AttendanceCalendar, attendanceColors } from './attendance-calendar';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const calculateTotalHours = (records: AttendanceRecord[], month: Date): string => {
     const monthStr = format(month, 'yyyy-MM');
@@ -92,9 +94,15 @@ export function AttendanceByEmployee() {
       accessorKey: 'name',
       header: 'Employee',
       cell: ({ row }) => (
-        <div className="w-32">
-          <div className="font-medium">{row.getValue('name')}</div>
-          <div className="text-xs text-muted-foreground">{row.original.id}</div>
+        <div className="flex items-center gap-3 w-40">
+            <Avatar className="h-8 w-8">
+                <AvatarImage src={row.original.imageUrl} alt={row.original.name} data-ai-hint="person avatar" />
+                <AvatarFallback>{row.original.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div>
+                <div className="font-medium">{row.getValue('name')}</div>
+                <div className="text-xs text-muted-foreground">{row.original.id}</div>
+            </div>
         </div>
       ),
     },

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -29,6 +30,7 @@ import {
 } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function EnrollmentPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = React.useState(
@@ -93,7 +95,13 @@ export default function EnrollmentPage() {
             <SelectContent>
               {employees.map((emp) => (
                 <SelectItem key={emp.id} value={emp.id}>
-                  {emp.name} ({emp.id})
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={emp.imageUrl} alt={emp.name} data-ai-hint="person avatar" />
+                      <AvatarFallback>{emp.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {emp.name} ({emp.id})
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -104,11 +112,17 @@ export default function EnrollmentPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
-          <CardHeader className="flex flex-row items-center gap-4">
-            <User className="h-8 w-8 text-primary" />
-            <div>
-              <CardTitle>Personal Data</CardTitle>
-              <CardDescription>Basic employee information.</CardDescription>
+          <CardHeader className="flex flex-row items-start gap-4">
+             <Avatar className="h-20 w-20 border">
+                <AvatarImage src={selectedEmployee.imageUrl} alt={selectedEmployee.name} data-ai-hint="person" />
+                <AvatarFallback>{selectedEmployee.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="space-y-1">
+              <CardTitle className="text-2xl">{selectedEmployee.name}</CardTitle>
+              <CardDescription>
+                ID: {selectedEmployee.id} <br />
+                {selectedEmployee.department}
+              </CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">

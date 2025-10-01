@@ -25,12 +25,21 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { rawAttendanceRecords, employees, departments } from '@/lib/data';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function DashboardPage() {
   const recentAttendance = rawAttendanceRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const issuesCount = rawAttendanceRecords.filter(
     (r) => r.status === 'Late' || r.status === 'Absent'
   ).length;
+
+  const getEmployeeImageUrl = (employeeId: string) => {
+    return employees.find(e => e.id === employeeId)?.imageUrl || '';
+  }
+   const getEmployeeName = (employeeId: string) => {
+    return employees.find(e => e.id === employeeId)?.name || '';
+  }
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -121,7 +130,16 @@ export default function DashboardPage() {
               {recentAttendance.map((record) => (
                 <TableRow key={record.id}>
                   <TableCell className="font-medium">
-                    {record.employeeName}
+                     <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={getEmployeeImageUrl(record.employeeId)} alt={record.employeeName} data-ai-hint="person avatar" />
+                            <AvatarFallback>{record.employeeName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <div className="font-medium">{record.employeeName}</div>
+                            <div className="text-xs text-muted-foreground">{record.employeeId}</div>
+                        </div>
+                    </div>
                   </TableCell>
                   <TableCell>{record.department}</TableCell>
                   <TableCell>{record.date}</TableCell>

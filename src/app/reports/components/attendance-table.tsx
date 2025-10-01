@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -14,7 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { rawAttendanceRecords } from '@/lib/data';
+import { rawAttendanceRecords, employees } from '@/lib/data';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type Record = (typeof rawAttendanceRecords)[0];
 
@@ -57,6 +59,10 @@ export function AttendanceTable() {
       record.employeeId.toLowerCase().includes(filter.toLowerCase()) ||
       record.department.toLowerCase().includes(filter.toLowerCase())
   );
+  
+  const getEmployeeImageUrl = (employeeId: string) => {
+    return employees.find(e => e.id === employeeId)?.imageUrl || '';
+  }
 
   return (
     <Card>
@@ -98,9 +104,17 @@ export function AttendanceTable() {
               {filteredData.length > 0 ? (
                 filteredData.map((record) => (
                   <TableRow key={record.id}>
-                    <TableCell className="font-medium">
-                      <div className="font-medium">{record.employeeName}</div>
-                      <div className="text-sm text-muted-foreground">{record.employeeId}</div>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={getEmployeeImageUrl(record.employeeId)} alt={record.employeeName} data-ai-hint="person avatar"/>
+                            <AvatarFallback>{record.employeeName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <div className="font-medium">{record.employeeName}</div>
+                            <div className="text-sm text-muted-foreground">{record.employeeId}</div>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">{record.department}</TableCell>
                     <TableCell>{record.date}</TableCell>
