@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Fingerprint, User } from 'lucide-react';
+import { Fingerprint, User, CheckCircle2, AlertCircle, Hourglass, Database } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -28,6 +28,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
 
 export default function EnrollmentPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = React.useState(
@@ -101,8 +102,8 @@ export default function EnrollmentPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-1">
           <CardHeader className="flex flex-row items-center gap-4">
             <User className="h-8 w-8 text-primary" />
             <div>
@@ -141,63 +142,87 @@ export default function EnrollmentPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-4">
-            <Fingerprint className="h-8 w-8 text-primary" />
-            <div>
-              <CardTitle>Access Control</CardTitle>
-              <CardDescription>
-                Manage credentials and permissions.
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Biometric Status</Label>
-              <div className="text-sm text-muted-foreground flex items-center">
-                <Badge
-                  variant="secondary"
-                  className="bg-green-100 text-green-800"
-                >
-                  Enrolled
-                </Badge>
-                <Button variant="link" size="sm">
-                  Re-enroll
-                </Button>
-              </div>
-            </div>
+        <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-4">
+                <Fingerprint className="h-8 w-8 text-primary" />
+                <div>
+                  <CardTitle>Access Control</CardTitle>
+                  <CardDescription>
+                    Manage credentials and permissions.
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                 <div className="space-y-2">
+                    <Label>Access Permissions</Label>
+                    <Accordion type="multiple" className="w-full space-y-2">
+                        {accessAreas.map((area) => (
+                            <AccordionItem key={area.id} value={area.id} className="rounded-md border bg-card text-sm shadow-sm">
+                                <AccordionTrigger className="px-4 py-3 font-medium hover:no-underline">
+                                    {area.name}
+                                </AccordionTrigger>
+                                <AccordionContent className="border-t">
+                                    <ul className="divide-y">
+                                        {area.doors.map((door) => {
+                                            const hasAccess = selectedEmployee.accessRights?.find(ar => ar.areaId === area.id)?.doorIds.includes(door.id) ?? false;
+                                            return (
+                                                <li key={door.id} className="flex items-center justify-between p-3 px-4">
+                                                    <span>{door.name}</span>
+                                                    <Checkbox
+                                                        checked={hasAccess}
+                                                        onCheckedChange={(checked) => handleAccessRightChange(area.id, door.id, !!checked)}
+                                                        id={`checkbox-${area.id}-${door.id}`}
+                                                    />
+                                                </li>
+                                            )
+                                        })}
+                                    </ul>
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div className="space-y-2">
-                <Label>Access Permissions</Label>
-                <Accordion type="multiple" className="w-full space-y-2">
-                    {accessAreas.map((area) => (
-                        <AccordionItem key={area.id} value={area.id} className="rounded-md border bg-card text-sm shadow-sm">
-                            <AccordionTrigger className="px-4 py-3 font-medium hover:no-underline">
-                                {area.name}
-                            </AccordionTrigger>
-                            <AccordionContent className="border-t">
-                                <ul className="divide-y">
-                                    {area.doors.map((door) => {
-                                        const hasAccess = selectedEmployee.accessRights?.find(ar => ar.areaId === area.id)?.doorIds.includes(door.id) ?? false;
-                                        return (
-                                            <li key={door.id} className="flex items-center justify-between p-3 px-4">
-                                                <span>{door.name}</span>
-                                                <Checkbox
-                                                    checked={hasAccess}
-                                                    onCheckedChange={(checked) => handleAccessRightChange(area.id, door.id, !!checked)}
-                                                    id={`checkbox-${area.id}-${door.id}`}
-                                                />
-                                            </li>
-                                        )
-                                    })}
-                                </ul>
-                            </AccordionContent>
-                        </AccordionItem>
-                    ))}
-                </Accordion>
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center gap-4">
+                    <Database className="h-8 w-8 text-primary" />
+                    <div>
+                        <CardTitle>Sync Status</CardTitle>
+                        <CardDescription>Enrollment status across all databases.</CardDescription>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <ul className="space-y-3">
+                        <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <CheckCircle2 className="text-green-500" />
+                                <span className="font-medium">Master Database (AC1)</span>
+                            </div>
+                            <Badge variant="secondary" className="bg-green-100 text-green-800">Synced</Badge>
+                        </li>
+                        <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Hourglass className="text-amber-500 animate-spin" />
+                                <span className="font-medium">Time & Attendance DB</span>
+                            </div>
+                            <Badge variant="secondary" className="bg-amber-100 text-amber-800">Syncing</Badge>
+                        </li>
+                        <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <AlertCircle className="text-red-500" />
+                                <span className="font-medium">Access Control DB 2</span>
+                            </div>
+                            <Badge variant="destructive">Error</Badge>
+                        </li>
+                    </ul>
+                    <Progress value={33} />
+                </CardContent>
+            </Card>
+
+        </div>
       </div>
     </div>
   );
