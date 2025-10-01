@@ -75,7 +75,7 @@ const calculateAttendancePercentage = (records: AttendanceRecord[], month: Date)
 }
 
 export function AttendanceByEmployee() {
-  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+  const [currentMonth, setCurrentMonth] = React.useState(new Date('2024-07-01'));
   const [globalFilter, setGlobalFilter] = React.useState('');
   const [departmentFilter, setDepartmentFilter] = React.useState('all');
 
