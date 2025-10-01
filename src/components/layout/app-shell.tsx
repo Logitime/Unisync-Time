@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   FileText,
+  History,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -37,6 +38,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/attendance', icon: History, label: 'Attendance' },
   { href: '/reports', icon: FileText, label: 'Reports' },
   { href: '/enrollment', icon: UserPlus, label: 'Enrollment' },
   { href: '/settings', icon: Settings, label: 'Settings' },
