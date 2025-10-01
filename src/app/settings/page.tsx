@@ -133,35 +133,15 @@ export default function SettingsPage() {
         <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <Card className="flex flex-col">
+            <CardHeader>
               <div className="flex items-center gap-4">
                 <Timer className="h-8 w-8 text-primary" />
                 <div>
-                  <CardTitle>Shift & Attendance</CardTitle>
+                  <CardTitle>Shift &amp; Attendance</CardTitle>
                   <CardDescription>Define company-wide shift times and policies.</CardDescription>
                 </div>
               </div>
-               <div className="flex items-center gap-1">
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon"><PlusCircle className="h-4 w-4" /></Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Add new shift</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Edit shift</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Delete shift</TooltipContent>
-                </Tooltip>
-            </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -173,6 +153,26 @@ export default function SettingsPage() {
                 <Input id="grace-period" type="number" defaultValue="5" />
               </div>
             </CardContent>
+            <CardFooter className="mt-auto justify-end gap-2">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" onClick={() => console.log('Add new shift')}><PlusCircle className="h-4 w-4" /></Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Add new shift</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" onClick={() => console.log('Edit shift')}><Pencil className="h-4 w-4" /></Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Edit shift</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="destructive" size="icon" onClick={() => console.log('Delete shift')}><Trash2 className="h-4 w-4" /></Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Delete shift</TooltipContent>
+                </Tooltip>
+            </CardFooter>
           </Card>
         </div>
 
